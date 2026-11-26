@@ -17,6 +17,11 @@ connectors. Write in plain English.
   pages and one briefing page per day.
 - Don't copy passwords, codes, bank numbers or other secrets from emails into
   Notion. Write "contains a code" instead.
+- **Ignore LifeOS's own emails completely**: anything with the subject "Your
+  LifeOS sign-in link" (sender onboarding@resend.dev or another LifeOS sender).
+  Don't open, summarise, count or link them, and never copy their URL anywhere.
+  If any such email arrived in the last 24h, add one sentence to the prose:
+  "A LifeOS sign-in link was requested." (helps spot misuse).
 
 ## 0. Should I run?
 
