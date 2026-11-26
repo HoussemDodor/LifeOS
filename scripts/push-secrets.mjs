@@ -1,10 +1,12 @@
 // Sends the secret values from .env.production.local to Vercel (production).
-// Run it yourself:  node scripts/push-secrets.mjs
+// Run it yourself:  node scripts/push-secrets.mjs [NAME ...]
+// With names, only those are sent (e.g. `node scripts/push-secrets.mjs RESEND_API_KEY`).
 // It prints only the names, never the values.
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
-const SECRETS = ["SESSION_SECRET", "SETUP_TOKEN", "SUPABASE_SERVICE_ROLE_KEY", "NOTION_TOKEN"];
+const ALL = ["SESSION_SECRET", "SETUP_TOKEN", "SUPABASE_SERVICE_ROLE_KEY", "NOTION_TOKEN", "RESEND_API_KEY"];
+const SECRETS = process.argv.length > 2 ? process.argv.slice(2).filter((n) => ALL.includes(n)) : ALL;
 const env = Object.fromEntries(
   readFileSync(".env.production.local", "utf8")
     .split(/\r?\n/)
