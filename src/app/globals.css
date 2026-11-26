@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
+/* LifeOS design tokens — dark, calm, one dawn accent. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #13151d;        /* page */
+  --surface: #1a1d28;    /* raised areas */
+  --surface-2: #212534;  /* hover / inputs */
+  --line: #272b38;       /* hairlines */
+  --text: #e7e4dd;       /* warm off-white */
+  --muted: #8b8f9d;
+  --faint: #5d6170;
+  --dawn: #e6b470;       /* the single accent */
+  --gain: #86b79c;
+  --loss: #d9898a;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-dawn: var(--dawn);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --font-sans: var(--font-grotesk);
+  --font-serif: var(--font-newsreader);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--ink);
+  color: var(--text);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-grotesk), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--dawn);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The one orchestrated moment: the day ribbon fills in on load. */
+@keyframes ribbon-in {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+.ribbon-block {
+  transform-origin: left center;
+  animation: ribbon-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
