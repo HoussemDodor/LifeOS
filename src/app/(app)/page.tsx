@@ -28,7 +28,7 @@ export default async function TodayPage() {
 
       {isSample && (
         <p className="mt-4 inline-block rounded-md border border-line px-2.5 py-1 text-xs text-muted">
-          Showing sample data. Connect Supabase and run the morning routine to see your own day.
+          Showing sample data. Add your Notion key to see your own day.
         </p>
       )}
 
