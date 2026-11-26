@@ -42,4 +42,9 @@ supabase/migrations/  database schema
 1. Supabase: new project (EU region) → SQL editor → run `supabase/migrations/0001_init.sql`.
 2. Vercel: import the GitHub repo, set env vars from `.env.example` (`RP_ID=houssem.dodor.nl`, `APP_ORIGIN=https://houssem.dodor.nl`).
 3. Vercel → Domains → add `houssem.dodor.nl`. At Hostnet DNS add `CNAME houssem → cname.vercel-dns.com`.
-4. Open the site → "First time here? Set up a passkey" → enter `SETUP_TOKEN`. Add a second passkey from your phone.
+4. Notion: notion.so/profile/integrations → New internal integration (read content only) → copy the secret into `NOTION_TOKEN`. On the **LifeOS Briefings** and **Tasks** (MyLife OS) databases: ••• → Connections → add the integration.
+5. Open the site → "First time here? Set up a passkey" → enter `SETUP_TOKEN`. Add a second passkey from your phone.
+
+## Morning routine
+
+A Claude Code cloud routine ("LifeOS morning brief") fires at 05:00 and 06:00 UTC, and only the run that falls on 07:00 Amsterdam time does anything. It follows [`routines/morning-brief.md`](routines/morning-brief.md): it reads Outlook (read-only), adds action items to the Notion Tasks database (deduplicated on `Email ID`), and writes a page to **LifeOS Briefings** with the briefing JSON the Today screen reads. To change its behaviour, edit that file and push. Manage it at claude.ai/code/routines.
