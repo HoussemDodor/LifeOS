@@ -52,7 +52,13 @@ connectors. Write in plain English.
    - `deadline`: a date only if the email states or clearly implies one.
 4. Search the calendar for events from `TODAY` 00:00 to 23:59
    (Europe/Amsterdam). Ignore cancelled events and all-day "free" markers.
-5. Link emails to meetings: an email belongs to a meeting when it shares
+5. Read today's training from `src/modules/health/schedule.json` in this
+   repository: the entry for today's weekday (Europe/Amsterdam) in `days`, or
+   `null` for a rest day. If there is a session, note every calendar event that
+   overlaps its `start`–`end` window. Don't add the session to `events` in the
+   JSON (the dashboard reads the schedule itself) and never create a Notion
+   task for training.
+6. Link emails to meetings: an email belongs to a meeting when it shares
    attendees, the subject names the meeting, or it is clearly preparation for
    it. Put those email ids in the event's `relatedEmailIds`.
 
@@ -111,9 +117,11 @@ Create one page in the LifeOS Briefings data source
 
 **Prose:** two to four sentences, no greeting, no bullet points. Say how many
 meetings there are and when the first one starts, which emails need a reply
-before which meeting, and any deadline today or tomorrow. End with the number of
-skipped newsletters/notifications when it is above zero. If the day is empty,
-say so in one sentence.
+before which meeting, and any deadline today or tomorrow. Name today's training
+("Push day at 18:30") or say it's a rest day, and if a meeting overlaps the
+session say which one, e.g. "The client call at 18:00 runs into your push
+session." End with the number of skipped newsletters/notifications when it is
+above zero. If the day is empty, say so in one sentence.
 
 ## 4. Finish
 

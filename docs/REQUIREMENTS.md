@@ -78,7 +78,7 @@ change my positions and which trades or ETFs to consider.
 
 | # | Requirement | Status |
 |---|---|---|
-| H1 | Fixed gym schedule built into my routines (below) | ⬜ |
+| H1 | Fixed gym schedule built into my routines (below) | ✅ Today ribbon + clash warning, Health & training screen, morning brief (schedule in `src/modules/health/schedule.json`) |
 | H2 | Hevy workouts synced (Hevy API, needs Hevy Pro) | ⬜ |
 | H3 | Apple Health (sleep, steps) via Health Auto Export → LifeOS webhook | ⬜ |
 | H4 | Habit streaks | ⬜ |
@@ -88,12 +88,12 @@ change my positions and which trades or ETFs to consider.
 | Day | Session |
 |---|---|
 | Monday | Rest |
-| Tuesday | Push |
-| Wednesday | Pull |
-| Thursday | Legs |
+| Tuesday | Push, 18:30–19:45 |
+| Wednesday | Pull, 18:30–19:45 |
+| Thursday | Legs, 18:30–19:45 |
 | Friday | Rest |
-| Saturday | Upper body |
-| Sunday | Legs |
+| Saturday | Upper body, 11:00–12:15 |
+| Sunday | Legs, 11:00–12:15 |
 
 **Integration** *(suggested)*:
 

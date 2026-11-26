@@ -1,14 +1,43 @@
+import { Dumbbell } from "lucide-react";
 import { localHours, time } from "@/lib/format";
+import { hoursOf, type Workout } from "@/modules/health/schedule";
 import type { AgendaEvent } from "./types";
 
 const START = 6; // the ribbon spans 06:00–24:00
 const END = 24;
 const pct = (h: number) => `${(Math.min(Math.max(h, START), END) - START) / (END - START) * 100}%`;
 
-/** A single line for the whole day: meetings as blocks, a marker for now. */
-export function DayRibbon({ events, now }: { events: AgendaEvent[]; now: Date }) {
+type Item =
+  | { kind: "event"; id: string; title: string; s: number; f: number; label: string; sub?: string }
+  | { kind: "workout"; id: string; title: string; s: number; f: number; label: string; sub?: string };
+
+/** A single line for the whole day: meetings and today's training as blocks, a marker for now. */
+export function DayRibbon({ events, workout, now }: { events: AgendaEvent[]; workout: Workout | null; now: Date }) {
   const nowH = localHours(now);
   const ticks = [6, 9, 12, 15, 18, 21, 24];
+
+  const items: Item[] = [
+    ...events.map((e) => ({
+      kind: "event" as const,
+      id: e.id,
+      title: e.title,
+      s: localHours(e.start),
+      f: localHours(e.end),
+      label: `${time(e.start)}–${time(e.end)}`,
+      sub: e.location,
+    })),
+    ...(workout
+      ? [{
+          kind: "workout" as const,
+          id: "workout",
+          title: `${workout.session} day`,
+          s: hoursOf(workout.start),
+          f: hoursOf(workout.end),
+          label: `${workout.start}–${workout.end}`,
+          sub: workout.focus,
+        }]
+      : []),
+  ].sort((a, b) => a.s - b.s);
 
   return (
     <figure aria-label="Today's agenda" className="relative">
@@ -18,20 +47,20 @@ export function DayRibbon({ events, now }: { events: AgendaEvent[]; now: Date })
         {/* elapsed part of the day */}
         <div className="absolute left-0 top-1/2 h-px -translate-y-1/2 bg-muted/60" style={{ width: pct(nowH) }} />
 
-        {events.map((e, i) => {
-          const s = localHours(e.start);
-          const f = localHours(e.end);
-          const past = f <= nowH;
+        {items.map((it, i) => {
+          const past = it.f <= nowH;
+          const tone =
+            it.kind === "workout"
+              ? past ? "border-gain/25 bg-gain/10" : "border-gain/60 bg-gain/20"
+              : past ? "border-muted/30 bg-muted/20" : "border-dawn/50 bg-dawn/20";
           return (
             <div
-              key={e.id}
-              className={`ribbon-block group absolute top-1/2 h-7 -translate-y-1/2 rounded-[3px] border ${
-                past ? "border-muted/30 bg-muted/20" : "border-dawn/50 bg-dawn/20"
-              }`}
-              style={{ left: pct(s), width: `calc(${pct(f)} - ${pct(s)})`, animationDelay: `${120 + i * 80}ms` }}
+              key={it.id}
+              className={`ribbon-block absolute top-1/2 h-7 -translate-y-1/2 rounded-[3px] border ${tone}`}
+              style={{ left: pct(it.s), width: `calc(${pct(it.f)} - ${pct(it.s)})`, animationDelay: `${120 + i * 80}ms` }}
             >
               <span className="sr-only">
-                {e.title}, {time(e.start)}–{time(e.end)}
+                {it.title}, {it.label}
               </span>
             </div>
           );
@@ -54,15 +83,18 @@ export function DayRibbon({ events, now }: { events: AgendaEvent[]; now: Date })
       </div>
 
       <ol className="mt-6 grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-        {events.map((e) => {
-          const past = localHours(e.end) <= nowH;
+        {items.map((it) => {
+          const past = it.f <= nowH;
           return (
-            <li key={e.id} className={past ? "text-faint" : ""}>
-              <div className="text-sm tabular-nums text-muted">
-                {time(e.start)}–{time(e.end)}
+            <li key={it.id} className={past ? "text-faint" : ""}>
+              <div className="text-sm tabular-nums text-muted">{it.label}</div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-[15px]">
+                {it.kind === "workout" && (
+                  <Dumbbell className={`size-3.5 ${past ? "" : "text-gain"}`} strokeWidth={2} aria-hidden="true" />
+                )}
+                {it.title}
               </div>
-              <div className="mt-0.5 text-[15px]">{e.title}</div>
-              {e.location && <div className="text-sm text-faint">{e.location}</div>}
+              {it.sub && <div className="text-sm text-faint">{it.sub}</div>}
             </li>
           );
         })}

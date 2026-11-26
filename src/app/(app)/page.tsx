@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Sparkline } from "@/components/Sparkline";
-import { eur, longDate, relativeDue, time } from "@/lib/format";
+import { eur, localHours, longDate, relativeDue, time } from "@/lib/format";
+import { clashesWith, workoutOn } from "@/modules/health/schedule";
 import { DayRibbon } from "@/modules/today/DayRibbon";
 import { getTodayData } from "@/modules/today/data";
 
@@ -18,6 +19,9 @@ export default async function TodayPage() {
   const now = new Date();
   const { briefing, tasks, netWorth, isSample } = await getTodayData(now);
   const actionEmails = briefing?.emails.filter((e) => e.needsAction) ?? [];
+  const events = briefing?.events ?? [];
+  const workout = workoutOn(now);
+  const clashes = clashesWith(workout, events, localHours);
 
   return (
     <>
@@ -34,10 +38,15 @@ export default async function TodayPage() {
 
       <section aria-labelledby="agenda" className="mt-12">
         <h2 id="agenda" className="sr-only">Agenda</h2>
-        {briefing && briefing.events.length > 0 ? (
-          <DayRibbon events={briefing.events} now={now} />
+        {events.length > 0 || workout ? (
+          <DayRibbon events={events} workout={workout} now={now} />
         ) : (
-          <p className="text-muted">Nothing on your calendar today.</p>
+          <p className="text-muted">Nothing on your calendar today, and it’s a rest day.</p>
+        )}
+        {clashes.length > 0 && workout && (
+          <p role="status" className="mt-4 text-sm text-dawn">
+            {clashes.join(" and ")} overlaps your {workout.session.toLowerCase()} session ({workout.start}–{workout.end}).
+          </p>
         )}
       </section>
 

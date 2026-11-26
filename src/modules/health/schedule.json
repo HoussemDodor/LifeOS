@@ -1,0 +1,13 @@
+{
+  "$comment": "Houssem's training week. Read by the app (Today + Health screens) and by the 07:00 morning routine. Times are Europe/Amsterdam. null = rest day.",
+  "timezone": "Europe/Amsterdam",
+  "days": {
+    "monday": null,
+    "tuesday": { "session": "Push", "focus": "Chest, shoulders, triceps", "start": "18:30", "end": "19:45" },
+    "wednesday": { "session": "Pull", "focus": "Back, biceps, rear delts", "start": "18:30", "end": "19:45" },
+    "thursday": { "session": "Legs", "focus": "Quads, hamstrings, glutes, calves", "start": "18:30", "end": "19:45" },
+    "friday": null,
+    "saturday": { "session": "Upper body", "focus": "Chest, back, shoulders, arms", "start": "11:00", "end": "12:15" },
+    "sunday": { "session": "Legs", "focus": "Quads, hamstrings, glutes, calves", "start": "11:00", "end": "12:15" }
+  }
+}
