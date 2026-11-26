@@ -5,14 +5,15 @@ production at houssem.dodor.nl, not just locally.
 Status key: ✅ done · 🟡 built, not live/verified · ⬜ not started.
 Items marked *(suggested)* were added by Claude as improvements on the original ask.
 
-Last updated: 2026-11-26
+Last updated: 2026-11-27
 
 ## 1. Platform
 
 | # | Requirement | Status |
 |---|---|---|
-| P1 | Web app on my own subdomain **houssem.dodor.nl** | 🟡 code ready, not deployed |
-| P2 | Password protected: **passkey login only**, email magic link to recover a lost device | 🟡 built, untested with a real passkey |
+| P1 | Web app on my own subdomain **houssem.dodor.nl** | ✅ live on Vercel + Supabase, HTTPS |
+| P2 | Password protected: **passkey login only**, email magic link to recover a lost device | ✅ passkeys (Windows + iPhone), setup code removed · 🟡 email recovery needs Resend + DNS records |
+| P8 | *(suggested)* Auto-deploy on every push (connect Vercel's GitHub app to the repo) | ⬜ deploys run from the CLI for now |
 | P3 | Beautiful: dark, calm, minimal design (frontend-design skill) | ✅ |
 | P4 | Expandable: every area is a module (folder + route + one line in `src/modules/registry.ts`) | ✅ |
 | P5 | English interface and briefings | ✅ |
@@ -27,7 +28,7 @@ Last updated: 2026-11-26
 | I2 | Link emails to agenda items | ✅ routine live |
 | I3 | Add action items to my Notion **Tasks** database (MyLife OS), automatically, without duplicates | ✅ routine live |
 | I4 | Runs every morning at **07:00** Amsterdam time so my to-do list is current | ✅ routine scheduled |
-| I5 | Show the briefing, agenda and open tasks on the dashboard | 🟡 needs Notion key + deploy |
+| I5 | Show the briefing, agenda and open tasks on the dashboard | 🟡 live and Notion connected; confirm after the first 07:00 brief |
 | I6 | *(suggested)* Tick off a Notion task from the dashboard | ⬜ |
 
 ## 3. Finance
