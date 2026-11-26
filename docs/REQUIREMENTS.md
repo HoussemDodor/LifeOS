@@ -12,7 +12,8 @@ Last updated: 2026-11-27
 | # | Requirement | Status |
 |---|---|---|
 | P1 | Web app on my own subdomain **houssem.dodor.nl** | ✅ live on Vercel + Supabase, HTTPS |
-| P2 | Password protected: **passkey login only**, email magic link to recover a lost device | ✅ passkeys (Windows + iPhone), setup code removed · 🟡 email recovery needs Resend + DNS records |
+| P2 | Password protected: **passkey login only**, email magic link to recover a lost device | ✅ passkeys (Windows + iPhone), setup code removed, email recovery via Resend tested end-to-end |
+| P9 | *(suggested)* Send recovery mail from my own domain instead of `onboarding@resend.dev` (Resend domain + DNS records) | ⬜ optional |
 | P8 | *(suggested)* Auto-deploy on every push (connect Vercel's GitHub app to the repo) | ⬜ deploys run from the CLI for now |
 | P3 | Beautiful: dark, calm, minimal design (frontend-design skill) | ✅ |
 | P4 | Expandable: every area is a module (folder + route + one line in `src/modules/registry.ts`) | ✅ |
