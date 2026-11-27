@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { importExports, refreshBitvavo, type ImportResult } from "./actions";
+import { importExports, reapplyRules, refreshBitvavo, type ImportResult } from "./actions";
 
 /** The monthly upload: ING and DEGIRO exports in one go; each file is recognised automatically. */
 export function ImportExports({ first }: { first: boolean }) {
@@ -68,6 +68,26 @@ export function RefreshBitvavo() {
       </button>
       {result && (
         <span role="status" className={`ml-2 text-sm ${result.ok ? "text-faint" : "text-loss"}`}>
+          {result.message}
+        </span>
+      )}
+    </form>
+  );
+}
+
+export function ReapplyRules() {
+  const [result, action, pending] = useActionState<ImportResult | null, FormData>(() => reapplyRules(), null);
+  return (
+    <form action={action} className="inline">
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded text-xs text-muted underline-offset-4 hover:text-text hover:underline disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-dawn"
+      >
+        {pending ? "Re-applying…" : "Re-apply category rules"}
+      </button>
+      {result && (
+        <span role="status" className={`ml-2 text-xs ${result.ok ? "text-faint" : "text-loss"}`}>
           {result.message}
         </span>
       )}

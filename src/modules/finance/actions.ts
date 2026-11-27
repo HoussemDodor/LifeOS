@@ -329,3 +329,45 @@ export async function paybackCandidates(paybackId: string): Promise<{ id: string
     .slice(0, 6)
     .map((c) => ({ id: c.txn.id, label: `${c.txn.counterparty} · ${c.txn.bookedAt} · ${eurText(-c.txn.amount, 2)}` }));
 }
+
+/**
+ * Re-run the category rules (yours first, then the built-in ones) on every
+ * transaction that a rule categorised. Your manual fixes and the coach's fixes
+ * stay. Transfers and paybacks stay too: they were detected from account
+ * numbers and texts that only the import sees.
+ */
+export async function reapplyRules(): Promise<ImportResult> {
+  if (!(await isSignedIn())) return { ok: false, message: "Sign in again." };
+  if (!hasDatabase()) return { ok: true, message: "Sample mode: nothing to update." };
+
+  const { data: ruleRows } = await db().from("category_rules").select("counterparty,category");
+  const rules = new Map((ruleRows ?? []).map((r) => [r.counterparty as string, r.category as string]));
+  const moves = new Map<string, string[]>();
+  for (let page = 0; ; page++) {
+    const { data, error } = await db()
+      .from("transactions")
+      .select("id,amount,counterparty,description,category")
+      .eq("category_source", "rule")
+      .order("id")
+      .range(page * 1000, page * 1000 + 999);
+    if (error) return { ok: false, message: "Couldn’t read your transactions. Try again." };
+    for (const t of data) {
+      if (t.category === "Transfers" || t.category === "Paybacks") continue;
+      const name = t.counterparty ?? "";
+      const next =
+        rules.get(name.toLowerCase()) ??
+        categorize({ name, notes: t.description ?? undefined, amount: Number(t.amount), type: undefined, counterIban: undefined }, new Set());
+      if (next !== t.category) moves.set(next, [...(moves.get(next) ?? []), t.id]);
+    }
+    if (data.length < 1000) break;
+  }
+  let changed = 0;
+  for (const [category, ids] of moves) {
+    for (let i = 0; i < ids.length; i += 200) {
+      const { error } = await db().from("transactions").update({ category }).in("id", ids.slice(i, i + 200)).eq("category_source", "rule");
+      if (!error) changed += Math.min(200, ids.length - i);
+    }
+  }
+  revalidatePath("/finance");
+  return { ok: true, message: changed ? `Updated the category of ${plural(changed, "transaction")}.` : "Everything was already up to date." };
+}

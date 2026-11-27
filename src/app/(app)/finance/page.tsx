@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { eur } from "@/lib/format";
 import { hasDatabase } from "@/lib/supabase";
 import { hasBitvavo, syncBitvavo } from "@/modules/finance/bitvavo";
 import { getFinance, type AccountView, type HoldingView } from "@/modules/finance/data";
-import { ImportExports, RefreshBitvavo } from "@/modules/finance/ImportExports";
+import { ImportExports, ReapplyRules, RefreshBitvavo } from "@/modules/finance/ImportExports";
 import { TransactionList } from "@/modules/finance/TransactionList";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,17 @@ export default async function FinancePage() {
         </ul>
       </section>
 
+      <Link
+        href="/finance/checkin"
+        className="mt-4 flex items-center justify-between gap-4 rounded-md border border-line px-4 py-3 hover:bg-surface focus-visible:outline-2 focus-visible:outline-dawn"
+      >
+        <span>
+          <span className="block text-[15px]">Monthly check-in</span>
+          <span className="block text-xs text-faint">Upload last month’s exports, then let the spending coach review it.</span>
+        </span>
+        <span className="shrink-0 text-sm text-dawn">Open</span>
+      </Link>
+
       {hasAnything && (
         <section aria-labelledby="worth" className="mt-12">
           <h2 id="worth" className="text-sm text-muted">Net worth</h2>
@@ -163,7 +175,9 @@ export default async function FinancePage() {
         <section aria-labelledby="txns" className="mt-16">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="txns" className="text-sm text-muted">Recent transactions</h2>
-            <p className="text-xs text-faint">Tap one to fix its category or a Tikkie match.</p>
+            <p className="text-xs text-faint">
+              Tap one to fix its category or a Tikkie match · <ReapplyRules />
+            </p>
           </div>
           <TransactionList transactions={transactions} showAccount={bank.length > 1} />
         </section>

@@ -60,7 +60,10 @@ export interface FinanceData {
 /** Not spending and not income: moving money between your own pots, and friends paying you back. */
 const NEITHER = new Set(["Transfers", "Investing", "Paybacks"]);
 
-/** `paidBack` is subtracted from a payment, so a shared € 80 dinner with € 60 back counts as € 20. */
+/**
+ * `paidBack` is subtracted from a payment, so a shared € 80 dinner with € 60 back counts as € 20.
+ * Only the Income category counts as money in; other incoming money is a refund.
+ */
 export function summarize(month: string, txns: Pick<TxnView, "amount" | "category" | "paidBack">[]): MonthSummary {
   const by = new Map<string, number>();
   let spent = 0;
@@ -71,7 +74,12 @@ export function summarize(month: string, txns: Pick<TxnView, "amount" | "categor
       const share = Math.max(0, -t.amount - t.paidBack);
       spent += share;
       by.set(t.category, (by.get(t.category) ?? 0) + share);
-    } else received += t.amount;
+    } else if (t.category === "Income") received += t.amount;
+    else {
+      // A refund from a shop lowers what you spent in that category.
+      spent -= t.amount;
+      by.set(t.category, (by.get(t.category) ?? 0) - t.amount);
+    }
   }
   return {
     month,

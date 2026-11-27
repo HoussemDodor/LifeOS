@@ -179,16 +179,17 @@ export const CATEGORIES = [
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+/** Matched against the shop name only: ING's notes hold boilerplate ("Transaction:", "Term:") that fools keyword rules. */
 const RULES: [Category, RegExp][] = [
-  ["Groceries", /albert heijn|\bah\b|jumbo|lidl|aldi|\bplus\b|dirk|vomar|hoogvliet|spar\b|ekoplaza|picnic|crisp/],
-  ["Eating out", /thuisbezorgd|uber ?eats|deliveroo|restaurant|cafe|caf[eé]|bistro|mcdonald|burger king|kfc|starbucks|domino|new york pizza|subway|febo/],
+  ["Groceries", /albert heijn|\bah\b|jumbo|lidl|aldi|\bplus\b|dirk|vomar|hoogvliet|\bspar\b|ekoplaza|picnic|crisp|\bmarket\b|supermarkt|toko|slagerij|bakkerij|bakker\b/],
+  ["Eating out", /thuisbezorgd|uber ?eats|deliveroo|restaurant|\bcafe\b|caf[eé]|bistro|mcdonald|burger king|kfc|starbucks|domino|new york pizza|subway|febo|albron|kantine|canteen|vending/],
   ["Transport", /\bns\b|ns groep|ov-?chip|translink|\bgvb\b|\bret\b|\bhtm\b|arriva|connexxion|shell|\bbp\b|esso|tango|tinq|texaco|total|uber|bolt|q-?park|parkeren|parkmobile|yellowbrick|anwb|swapfiets/],
   ["Housing", /huur|hypotheek|woonstichting|woningcorporatie|vve\b|rent\b/],
   ["Utilities", /vattenfall|eneco|essent|greenchoice|budget energie|ziggo|kpn|odido|t-mobile|vodafone|simyo|lebara|waternet|vitens|evides|brabant water|gemeente|belastingdienst|waterschap/],
   ["Insurance", /verzekering|zilveren kruis|\bcz\b|\bvgz\b|menzis|ohra|centraal beheer|interpolis|ditzo|\bfbto\b|nationale-nederlanden|a\.s\.r|asr\b/],
   ["Health & sport", /apotheek|tandarts|huisarts|fysio|basic-?fit|sportschool|fit for free|anytime fitness|trainmore|hevy/],
   ["Subscriptions", /netflix|spotify|apple\.com|itunes|google|youtube|disney|videoland|hbo|amazon prime|prime video|patreon|chatgpt|openai|anthropic|claude|icloud|microsoft|adobe/],
-  ["Shopping", /bol\.com|coolblue|amazon|zalando|ikea|hema|action\b|mediamarkt|kruidvat|etos|decathlon|primark|h&m|uniqlo|wehkamp/],
+  ["Shopping", /bol\.com|coolblue|amazon|zalando|ikea|\bhema\b|\baction\b|mediamarkt|kruidvat|\betos\b|decathlon|primark|h&m|uniqlo|wehkamp/],
   ["Investing", /degiro|flatex|bitvavo|coinbase|kraken|meesman|brand new day|trade republic|saxo/],
 ];
 
@@ -197,15 +198,20 @@ export const isPaybackText = (text: string) => /tikkie|betaalverzoek|payment req
 
 /** Rule-based category from the counterparty name, notes and transaction type. */
 export function categorize(row: Pick<IngRow, "name" | "notes" | "type" | "amount" | "counterIban">, ownAccounts: Set<string>): Category {
-  const text = `${row.name} ${row.notes ?? ""}`.toLowerCase();
+  const name = row.name.toLowerCase();
+  const text = `${name} ${row.notes ?? ""}`.toLowerCase();
   const type = (row.type ?? "").toLowerCase();
   if ((row.counterIban && ownAccounts.has(row.counterIban)) || /spaarrekening|oranje spaar|savings account/.test(text)) {
     return "Transfers";
   }
   if (row.amount > 0 && isPaybackText(text)) return "Paybacks";
-  if (/geldautomaat|atm|opname/.test(type) || /geldautomaat/.test(text)) return "Cash";
-  if (row.amount > 0 && /salaris|salary|loon|wages|payroll/.test(text)) return "Income";
-  for (const [cat, re] of RULES) if (re.test(text)) return cat;
-  if (row.amount > 0) return "Income";
+  if (/geldautomaat|\batm\b|opname/.test(type) || /geldmaat|geldautomaat/.test(name)) return "Cash";
+  if (row.amount > 0) {
+    if (/salaris|salary|loon|wages|payroll|belastingdienst|toeslag|\buwv\b|\bduo\b/.test(text)) return "Income";
+    // Money back from a shop is a refund: it lowers that category's spending.
+    for (const [cat, re] of RULES) if (cat !== "Investing" && re.test(name)) return cat;
+    return "Income";
+  }
+  for (const [cat, re] of RULES) if (re.test(name)) return cat;
   return "Other";
 }
