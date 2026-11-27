@@ -31,7 +31,7 @@ Last updated: 2026-11-27
 | I3 | Add action items to my Notion **Tasks** database (MyLife OS), automatically, without duplicates | ✅ routine live |
 | I4 | Runs every morning at **07:00** Amsterdam time so my to-do list is current | ✅ routine scheduled |
 | I5 | Show the briefing, agenda and open tasks on the dashboard | 🟡 live and Notion connected; confirm after the first 07:00 brief |
-| I6 | *(suggested)* Tick off a Notion task from the dashboard | ⬜ |
+| I6 | *(suggested)* Tick off a Notion task from the dashboard | 🟡 live (checkbox + undo on Today); confirm one tick on the live site |
 
 ## 3. Finance
 

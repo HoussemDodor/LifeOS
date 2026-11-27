@@ -42,7 +42,7 @@ supabase/migrations/  database schema
 1. Supabase: new project (EU region) → SQL editor → run `supabase/migrations/0001_init.sql`.
 2. Vercel: import the GitHub repo, set env vars from `.env.example` (`RP_ID=houssem.dodor.nl`, `APP_ORIGIN=https://houssem.dodor.nl`).
 3. Vercel → Domains → add `houssem.dodor.nl`. At Hostnet DNS add `CNAME houssem → cname.vercel-dns.com`.
-4. Notion: notion.so/profile/integrations → New internal integration (read content only) → copy the secret into `NOTION_TOKEN`. On the **LifeOS Briefings** and **Tasks** (MyLife OS) databases: ••• → Connections → add the integration.
+4. Notion: notion.so/profile/integrations → New internal integration (read content + update content, so tasks can be ticked off) → copy the secret into `NOTION_TOKEN`. On the **LifeOS Briefings** and **Tasks** (MyLife OS) databases: ••• → Connections → add the integration.
 5. Open the site → "First time here? Set up a passkey" → enter `SETUP_TOKEN`. Add a second passkey from your phone.
 
 ## Morning routine
