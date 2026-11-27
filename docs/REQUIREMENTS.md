@@ -44,8 +44,8 @@ Last updated: 2026-11-27
 | F4 | Net worth over time, spending by category, savings | ⬜ |
 | F5 | Subscriptions and recurring costs detected from transactions | ⬜ |
 | F6 | **Monthly portfolio review**, see below and [finance-agents.md](finance-agents.md) | ⬜ needs F1–F3 first |
-| F7 | Monthly check-in: upload, see data freshness, press one button that runs both agents; reports saved per month | ⬜ |
-| F8 | ⬜ data foundation done (category fixes + shop rules, Tikkie netting). **Spending coach** agent: blunt Gen Z briefing, proposes a savings target, Tikkie netting, category fixes, tracks 1–3 promises per month, chat with memory ([spec](finance-agents.md)) | ⬜ |
+| F7 | Monthly check-in: upload, see data freshness, press one button that runs both agents; reports saved per month | 🟡 live at /finance/checkin for the coach; needs your Anthropic API key; analyst joins in step 4 |
+| F8 | 🟡 report live (target proposal, promises + scoring, category fixes with undo); chat is step 3. **Spending coach** agent: blunt Gen Z briefing, proposes a savings target, Tikkie netting, category fixes, tracks 1–3 promises per month, chat with memory ([spec](finance-agents.md)) | ⬜ |
 | F9 | **Portfolio analyst** agent: core–satellite 75/25, crypto max 5%, trim advice only above 50% satellite, web-sourced stock checks, chat with memory ([spec](finance-agents.md)) | ⬜ |
 
 ### F6: Monthly portfolio review
