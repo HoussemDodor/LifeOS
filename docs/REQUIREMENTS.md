@@ -37,7 +37,7 @@ Last updated: 2026-11-27
 
 | # | Requirement | Status |
 |---|---|---|
-| F1 | ING current and savings accounts and transactions | ⬜ (Enable Banking PSD2, or CAMT/CSV import) |
+| F1 | ING current and savings accounts and transactions | 🟡 live via CSV upload on Finance (accounts, balances, categories, no duplicates); confirm with your first real export. Live sync via Enable Banking possible later |
 | F2 | DEGIRO portfolio | ⬜ (CSV export + daily prices) |
 | F3 | Bitvavo crypto | ⬜ (read-only API key) |
 | F4 | Net worth over time, spending by category, savings | ⬜ |
