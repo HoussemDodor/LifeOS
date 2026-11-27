@@ -210,6 +210,10 @@ export function categorize(row: Pick<IngRow, "name" | "notes" | "type" | "amount
     if (/salaris|salary|loon|wages|payroll|belastingdienst|toeslag|\buwv\b|\bduo\b/.test(text)) return "Income";
     // Money back from a shop is a refund: it lowers that category's spending.
     for (const [cat, re] of RULES) if (cat !== "Investing" && re.test(name)) return cat;
+    // Card refunds ("LOTUS ... PHANGN THA", "CCV*SHOP ROERMOND NLD", a payment-terminal type) aren't income either.
+    if (/\s[A-Z]{3}$/.test(row.name.trim()) || /^[A-Z]{2,4}\*/.test(row.name.trim()) || /betaalautomaat|payment terminal/.test(type)) {
+      return "Other";
+    }
     return "Income";
   }
   for (const [cat, re] of RULES) if (re.test(name)) return cat;
