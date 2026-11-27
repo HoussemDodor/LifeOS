@@ -128,8 +128,8 @@ export default async function PortfolioPage() {
       )}
 
       <p className="mt-14 max-w-[62ch] text-xs text-faint">
-        Analysis against your own rules, not licensed financial advice. LifeOS never places trades. The portfolio analyst’s
-        monthly report (stock checks with sources, fund costs, the all-world comparison) arrives in the next update.
+        Analysis against your own rules, not licensed financial advice. LifeOS never places trades. The Analyst tab has the
+        monthly review: stock checks with sources, fund costs and overlap.
       </p>
     </>
   );

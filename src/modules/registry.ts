@@ -41,6 +41,7 @@ export const modules: LifeModule[] = [
       { name: "Check-in", href: "/finance/checkin" },
       { name: "Coach", href: "/finance/coach" },
       { name: "Portfolio", href: "/finance/portfolio" },
+      { name: "Analyst", href: "/finance/analyst" },
     ],
   },
   { id: "health", name: "Health & training", short: "Health", href: "/health", icon: HeartPulse, status: "live", description: "Gym schedule; Hevy and Apple Health later" },

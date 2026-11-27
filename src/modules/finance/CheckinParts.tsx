@@ -30,7 +30,7 @@ export function RunCheckin({ month, disabled, label }: { month: string; disabled
       >
         {pending ? "Starting…" : label}
       </button>
-      <span className="text-sm text-faint">Reviews {month}. Takes 1–3 minutes and costs well under € 0,50.</span>
+      <span className="text-sm text-faint">Reviews {month} with the spending coach and the portfolio analyst. Takes 2–4 minutes and costs about US$ 1–2.</span>
       {error && (
         <p role="status" className="w-full text-sm text-loss">
           {error}
@@ -41,7 +41,7 @@ export function RunCheckin({ month, disabled, label }: { month: string; disabled
 }
 
 /** While a check-in runs, refresh the page every few seconds until the report is there. */
-export function WaitForReport() {
+export function WaitForReport({ text = "The coach is going through your transactions…" }: { text?: string }) {
   const router = useRouter();
   const [seconds, setSeconds] = useState(0);
   useEffect(() => {
@@ -55,7 +55,7 @@ export function WaitForReport() {
   return (
     <p role="status" className="flex items-center gap-3 text-muted">
       <span className="size-2 animate-pulse rounded-full bg-dawn" aria-hidden="true" />
-      The coach is going through your transactions… {seconds > 5 && <span className="tabular-nums text-faint">{seconds}s</span>}
+      {text} {seconds > 5 && <span className="tabular-nums text-faint">{seconds}s</span>}
     </p>
   );
 }

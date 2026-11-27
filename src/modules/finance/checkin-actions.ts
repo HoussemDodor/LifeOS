@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { isSignedIn } from "@/lib/require-session";
 import { db, hasDatabase } from "@/lib/supabase";
+import { queueAnalyst } from "./analyst-queue";
 import { hasAnthropic, runCoach } from "./coach";
 import { buildFacts, monthToReview } from "./facts";
 
@@ -42,7 +43,10 @@ export async function startCheckin(): Promise<Result> {
   if (error) return { ok: false, error: "Couldn’t start the check-in. Try again." };
 
   after(() => runCoach(row.id, facts));
+  // The portfolio analyst runs alongside, when there are investments to review.
+  await queueAnalyst(month).catch((err) => console.error("queue analyst:", err));
   refresh();
+  revalidatePath("/finance/analyst");
   return { ok: true };
 }
 
