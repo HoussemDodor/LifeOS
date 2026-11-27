@@ -81,7 +81,7 @@ change my positions and which trades or ETFs to consider.
 | H1 | Fixed gym schedule built into my routines (below) | ✅ Today ribbon + clash warning, Health & training screen, morning brief (schedule in `src/modules/health/schedule.json`) |
 | H2 | Hevy workouts synced (Hevy API, needs Hevy Pro) | ⬜ |
 | H3 | Apple Health (sleep, steps) via Health Auto Export → LifeOS webhook | ⬜ |
-| H4 | Habit streaks | ⬜ |
+| H4 | Habit streaks | 🟡 live: Habits screen (tick last 7 days, current/best streak, 12-week history) + Today block, Supabase `habits`/`habit_checks`; confirm by adding your habits |
 
 ### H1: Gym schedule
 
