@@ -38,13 +38,13 @@ Last updated: 2026-11-27
 | # | Requirement | Status |
 |---|---|---|
 | F1 | ING current and savings accounts and transactions | 🟡 live via CSV upload on Finance (accounts, balances, categories, no duplicates); confirm with your first real export. Live sync via Enable Banking possible later |
-| F2 | DEGIRO portfolio | ⬜ (Portfolio + Transactions CSV upload) |
-| F3 | Bitvavo crypto | ⬜ (read-only API key) |
+| F2 | DEGIRO portfolio | 🟡 live: Portfolio + Transactions CSV in the same upload as ING; confirm with your first real export |
+| F3 | Bitvavo crypto | 🟡 built: read-only sync, refreshes when Finance opens; needs your View-only API key (push-secrets) |
 | F4 | Net worth over time, spending by category, savings | ⬜ |
 | F5 | Subscriptions and recurring costs detected from transactions | ⬜ |
 | F6 | **Monthly portfolio review**, see below and [finance-agents.md](finance-agents.md) | ⬜ needs F1–F3 first |
 | F7 | Monthly check-in: upload, see data freshness, press one button that runs both agents; reports saved per month | ⬜ |
-| F8 | **Spending coach** agent: blunt Gen Z briefing, proposes a savings target, Tikkie netting, category fixes, tracks 1–3 promises per month, chat with memory ([spec](finance-agents.md)) | ⬜ |
+| F8 | ⬜ data foundation done (category fixes + shop rules, Tikkie netting). **Spending coach** agent: blunt Gen Z briefing, proposes a savings target, Tikkie netting, category fixes, tracks 1–3 promises per month, chat with memory ([spec](finance-agents.md)) | ⬜ |
 | F9 | **Portfolio analyst** agent: core–satellite 75/25, crypto max 5%, trim advice only above 50% satellite, web-sourced stock checks, chat with memory ([spec](finance-agents.md)) | ⬜ |
 
 ### F6: Monthly portfolio review
