@@ -86,11 +86,6 @@ export default async function FinancePage() {
         </ul>
       </section>
 
-      <ul className="mt-4 divide-y divide-line rounded-md border border-line">
-        <CoachLink href="/finance/checkin" title="Monthly check-in" note="Upload last month’s exports, then let the spending coach review it." />
-        <CoachLink href="/finance/coach" title="Ask the coach" note="Questions about your spending, answered from your own transactions." />
-        <CoachLink href="/finance/portfolio" title="Portfolio" note="Your investments against your 75/25 rules and the 5% crypto cap." />
-      </ul>
 
       {hasAnything && (
         <section aria-labelledby="worth" className="mt-12">
@@ -240,22 +235,5 @@ function Holdings({ title, rows, total }: { title: string; rows: HoldingView[]; 
         ))}
       </ul>
     </div>
-  );
-}
-
-function CoachLink({ href, title, note }: { href: string; title: string; note: string }) {
-  return (
-    <li>
-      <Link
-        href={href}
-        className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-surface focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-dawn"
-      >
-        <span>
-          <span className="block text-[15px]">{title}</span>
-          <span className="block text-xs text-faint">{note}</span>
-        </span>
-        <span className="shrink-0 text-sm text-dawn">Open</span>
-      </Link>
-    </li>
   );
 }

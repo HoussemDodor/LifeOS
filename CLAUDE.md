@@ -51,7 +51,12 @@ Bigger features: propose a short plan first, build in small deployable steps.
 - One accent (`dawn`) used sparingly: "now", today's items, primary buttons.
 - Avoid identical card grids; use hairlines (`border-line`) and spacing.
 - Every screen must work at 375px wide. Keyboard focus stays visible.
-- For new screens, load the **frontend-design** skill first; for charts the
+- Navigation: modules come from `registry.ts` (desktop sidebar, phone bottom tab
+  bar). Pages inside a module are listed in its `sections` and shown as tabs by
+  a `layout.tsx` with `<SectionTabs>` (see `finance/layout.tsx`). No "back"
+  links and no link lists to sub-pages inside page content.
+- For new screens, load the **frontend-design** skill first (installed as a
+  plugin; the file is also at `~/.claude/plugins/marketplaces/claude-plugins-official/plugins/frontend-design/skills/frontend-design/SKILL.md`); for charts the
   **dataviz** skill.
 
 ## Data and services

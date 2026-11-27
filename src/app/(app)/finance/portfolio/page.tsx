@@ -25,10 +25,7 @@ export default async function PortfolioPage() {
 
   return (
     <>
-      <Link href="/finance" className="text-sm text-muted underline-offset-4 hover:text-text hover:underline">
-        Finance
-      </Link>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Portfolio</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">Portfolio</h1>
       <p className="mt-2 max-w-[62ch] text-muted">
         Your investments against your own rules: {pct(POLICY.core)} core, {pct(POLICY.satellite)} satellite, crypto at most{" "}
         {pct(POLICY.cryptoCap)}. LifeOS only reads; every trade is yours to make.

@@ -29,10 +29,7 @@ export default async function CheckinPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <Link href="/finance" className="text-sm text-muted underline-offset-4 hover:text-text hover:underline">
-        Finance
-      </Link>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Monthly check-in</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">Monthly check-in</h1>
       <p className="mt-2 max-w-[62ch] text-muted">
         Your spending coach goes through last month: where the money went, what to cut, and whether you kept your
         promises.

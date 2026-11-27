@@ -19,10 +19,7 @@ export default async function CoachPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <Link href="/finance" className="text-sm text-muted underline-offset-4 hover:text-text hover:underline">
-        Finance
-      </Link>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight">Ask the coach</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">Ask the coach</h1>
       <p className="mt-2 max-w-[62ch] text-muted">
         Your spending coach, on call. It looks things up in your transactions and check-ins and remembers earlier chats.
         It only reads: targets and promises stay yours to set.
