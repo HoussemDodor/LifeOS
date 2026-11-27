@@ -103,7 +103,10 @@ export function matchPaybacks(all: MatchTxn[]): Map<string, string> {
     const key = requestKey(pb);
     const best = candidatesFor(pb, all, offsetSum, key ? byRequest.get(key) : undefined)[0];
     if (!best) continue;
-    const confident = best.overlap || (best.daysBefore <= 3 && SHARED_LIKELY.has(best.txn.category));
+    // A Tikkie is always for a recent shared cost; a plain bank transfer from a person might be
+    // anything, so that only links on a shared word between the two descriptions.
+    const isRequest = /tikkie|betaalverzoek|payment request|wiebetaaltwat/i.test(`${pb.counterparty} ${pb.description ?? ""}`);
+    const confident = best.overlap || (isRequest && best.daysBefore <= 3 && SHARED_LIKELY.has(best.txn.category));
     if (!confident) continue;
     links.set(pb.id, best.txn.id);
     if (key) byRequest.set(key, best.txn.id);

@@ -196,6 +196,18 @@ const RULES: [Category, RegExp][] = [
 /** Tikkie / payment-request paybacks: money friends send back for a shared cost. */
 export const isPaybackText = (text: string) => /tikkie|betaalverzoek|payment request/i.test(text);
 
+/**
+ * A private person, judged from the name ING shows: a title ("Hr M Kucuk",
+ * "Mw A Dodor") or leading initials ("S. Romero", "A.M.M. Ahmed", "K RAKILI").
+ * Names with company words never count. Full names without initials are missed;
+ * those can be fixed by hand with "Always for …".
+ */
+export function isPersonName(raw: string): boolean {
+  const name = raw.trim();
+  if (/\b(b\.?v\.?|n\.?v\.?|bank|stichting|gmbh|ltd|holding|groep|group|services?|vof|cv)\b/i.test(name)) return false;
+  return /^(mw|mevr|mevrouw|dhr|hr|heer)\.?\s+\S/i.test(name) || /^([A-Z]\.?){1,4}\s+[A-Za-zÀ-ÿ]/.test(name);
+}
+
 /** Rule-based category from the counterparty name, notes and transaction type. */
 export function categorize(row: Pick<IngRow, "name" | "notes" | "type" | "amount" | "counterIban">, ownAccounts: Set<string>): Category {
   const name = row.name.toLowerCase();
@@ -210,6 +222,8 @@ export function categorize(row: Pick<IngRow, "name" | "notes" | "type" | "amount
     if (/salaris|salary|loon|wages|payroll|belastingdienst|toeslag|\buwv\b|\bduo\b/.test(text)) return "Income";
     // Money back from a shop is a refund: it lowers that category's spending.
     for (const [cat, re] of RULES) if (cat !== "Investing" && re.test(name)) return cat;
+    // Money from a private person (Houssem's choice, 2026-11-27) is a payback, not income.
+    if (isPersonName(row.name)) return "Paybacks";
     // Card refunds ("LOTUS ... PHANGN THA", "CCV*SHOP ROERMOND NLD", a payment-terminal type) aren't income either.
     if (/\s[A-Z]{3}$/.test(row.name.trim()) || /^[A-Z]{2,4}\*/.test(row.name.trim()) || /betaalautomaat|payment terminal/.test(type)) {
       return "Other";

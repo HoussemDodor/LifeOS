@@ -368,6 +368,12 @@ export async function reapplyRules(): Promise<ImportResult> {
       if (!error) changed += Math.min(200, ids.length - i);
     }
   }
+  // Newly recognised paybacks may belong to a payment.
+  const linked = await runPaybackMatching("2000-01-01");
   revalidatePath("/finance");
-  return { ok: true, message: changed ? `Updated the category of ${plural(changed, "transaction")}.` : "Everything was already up to date." };
+  const parts = [
+    changed ? `Updated the category of ${plural(changed, "transaction")}.` : "Categories were already up to date.",
+    linked ? `Matched ${plural(linked, "payback")} to what they paid for.` : "",
+  ];
+  return { ok: true, message: parts.filter(Boolean).join(" ") };
 }
