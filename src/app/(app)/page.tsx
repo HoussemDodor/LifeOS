@@ -4,6 +4,7 @@ import { Sparkline } from "@/components/Sparkline";
 import { eur, localHours, longDate, relativeDue, time } from "@/lib/format";
 import { clashesWith, workoutOn } from "@/modules/health/schedule";
 import { DayRibbon } from "@/modules/today/DayRibbon";
+import { TaskList } from "@/modules/today/TaskList";
 import { getTodayData } from "@/modules/today/data";
 
 export const dynamic = "force-dynamic";
@@ -92,27 +93,18 @@ export default async function TodayPage() {
               <h2 id="tasks" className="text-sm text-muted">Up next in Notion</h2>
               <span className="text-xs text-faint">{tasks.length} open</span>
             </div>
-            {tasks.length ? (
-              <ul className="mt-4 space-y-3">
-                {tasks.map((t) => {
-                  const due = relativeDue(t.due, now);
-                  return (
-                    <li key={t.id} className="flex items-start gap-3">
-                      <span className="mt-1 size-3.5 shrink-0 rounded-[4px] border border-faint" aria-hidden="true" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[15px] leading-snug">{t.title}</p>
-                        <p className="text-xs text-faint">
-                          <span className={due.includes("overdue") || due === "Today" ? "text-dawn" : ""}>{due}</span>
-                          {t.fromEmail && " · from email"}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="mt-4 text-muted">Nothing open. Enjoy it.</p>
-            )}
+            <TaskList
+              tasks={tasks.map((t) => {
+                const due = relativeDue(t.due, now);
+                return {
+                  id: t.id,
+                  title: t.title,
+                  dueLabel: due,
+                  dueSoon: due.includes("overdue") || due === "Today",
+                  fromEmail: t.fromEmail,
+                };
+              })}
+            />
           </section>
 
           {netWorth && (
