@@ -46,7 +46,7 @@ Last updated: 2026-11-27
 | F6 | **Monthly portfolio review**, see below and [finance-agents.md](finance-agents.md) | ⬜ needs F1–F3 first |
 | F7 | Monthly check-in: upload, see data freshness, press one button that runs both agents; reports saved per month | 🟡 live at /finance/checkin for the coach; needs your Anthropic API key; analyst joins in step 4 |
 | F8 | **Spending coach** agent: blunt Gen Z briefing, proposes a savings target, Tikkie netting, category fixes, tracks 1–3 promises per month, chat with memory ([spec](finance-agents.md)) | ✅ report live (target proposal, promises + scoring, category fixes with undo); chat live at /finance/coach (read-only tools over your data, saved chats, memory of check-ins and earlier chats, stops at the monthly AI cap) |
-| F9 | **Portfolio analyst** agent: core–satellite 75/25, crypto max 5%, trim advice only above 50% satellite, web-sourced stock checks, chat with memory ([spec](finance-agents.md)) | ⬜ |
+| F9 | **Portfolio analyst** agent: core–satellite 75/25, crypto max 5%, trim advice only above 50% satellite, web-sourced stock checks, chat with memory ([spec](finance-agents.md)) | 🟡 4a live: /finance/portfolio shows the split vs 75/25, the 5% crypto cap and the 50% trim line, with core/satellite grouping you can correct. Waiting for your DEGIRO exports. Next: 4b analyst report, 4c all-world comparison |
 
 ### F6: Monthly portfolio review
 

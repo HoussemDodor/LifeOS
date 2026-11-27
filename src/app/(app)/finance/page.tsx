@@ -89,6 +89,7 @@ export default async function FinancePage() {
       <ul className="mt-4 divide-y divide-line rounded-md border border-line">
         <CoachLink href="/finance/checkin" title="Monthly check-in" note="Upload last month’s exports, then let the spending coach review it." />
         <CoachLink href="/finance/coach" title="Ask the coach" note="Questions about your spending, answered from your own transactions." />
+        <CoachLink href="/finance/portfolio" title="Portfolio" note="Your investments against your 75/25 rules and the 5% crypto cap." />
       </ul>
 
       {hasAnything && (
@@ -161,7 +162,12 @@ export default async function FinancePage() {
           <h2 id="holdings" className="text-sm text-muted">Investments</h2>
           <Holdings title="DEGIRO" rows={holdingsOf(degiro)} total={invested + crypto} />
           <Holdings title="Bitvavo" rows={holdingsOf(bitvavo)} total={invested + crypto} />
-          <p className="mt-3 text-xs text-faint">Share of all investments (DEGIRO + Bitvavo). Analysis arrives with the portfolio analyst.</p>
+          <p className="mt-3 text-xs text-faint">
+            Share of all investments (DEGIRO + Bitvavo).{" "}
+            <Link href="/finance/portfolio" className="text-dawn underline-offset-4 hover:underline">
+              See them against your rules
+            </Link>
+          </p>
         </section>
       )}
 

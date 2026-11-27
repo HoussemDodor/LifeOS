@@ -12,6 +12,10 @@
   --dawn: #e6b470;       /* the single accent */
   --gain: #86b79c;
   --loss: #d9898a;
+  /* Chart series (validated categorical slots 1–3 for this dark surface). Marks only, never text. */
+  --viz-1: #3987e5;      /* core */
+  --viz-2: #d95926;      /* single stocks */
+  --viz-3: #199e70;      /* crypto */
   color-scheme: dark;
 }
 
@@ -26,6 +30,9 @@
   --color-dawn: var(--dawn);
   --color-gain: var(--gain);
   --color-loss: var(--loss);
+  --color-viz-1: var(--viz-1);
+  --color-viz-2: var(--viz-2);
+  --color-viz-3: var(--viz-3);
   --font-sans: var(--font-grotesk);
   --font-serif: var(--font-newsreader);
 }
