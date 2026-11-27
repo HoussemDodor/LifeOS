@@ -30,7 +30,7 @@ export function RunCheckin({ month, disabled, label }: { month: string; disabled
       >
         {pending ? "Starting…" : label}
       </button>
-      <span className="text-sm text-faint">Reviews {month} with the spending coach and the portfolio analyst. Takes 2–4 minutes and costs about US$ 1–2.</span>
+      <span className="text-sm text-faint">Reviews {month} with the spending coach and the portfolio analyst. Takes about 3 minutes and costs about US$ 3.</span>
       {error && (
         <p role="status" className="w-full text-sm text-loss">
           {error}

@@ -27,7 +27,7 @@ export function RunAnalysis({ label, disabled }: { label: string; disabled: bool
       >
         {pending ? "Starting…" : label}
       </button>
-      <span className="text-sm text-faint">Researches every holding on the web. Takes 2–4 minutes and costs about US$ 1.</span>
+      <span className="text-sm text-faint">Researches every holding on the web. Takes about 3 minutes and costs about US$ 2,50.</span>
       {error && (
         <p role="status" className="w-full text-sm text-loss">
           {error}

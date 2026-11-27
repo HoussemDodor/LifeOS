@@ -23,6 +23,8 @@ const RESEARCH_BUDGET_MS = 150_000;
 /* ---------- Shapes ---------- */
 
 const Source = z.object({ title: z.string(), url: z.string(), date: z.string() });
+/** Too many items is not worth a retry (a retry costs a whole extra call): keep the first n. */
+const upTo = <T extends z.ZodTypeAny>(item: T, n: number) => z.array(item).transform((a) => a.slice(0, n));
 type SourceT = z.infer<typeof Source>;
 
 const FundResearch = z.object({
@@ -30,12 +32,12 @@ const FundResearch = z.object({
   ter_pct: z.number().nullable(),
   holdings_count: z.number().nullable(),
   distribution: z.enum(["distributing", "accumulating", "unknown"]),
-  top_holdings: z.array(z.object({ name: z.string(), weight_pct: z.number() })).max(15),
-  regions: z.array(z.object({ region: z.string(), weight_pct: z.number() })).max(10),
-  top_sectors: z.array(z.object({ sector: z.string(), weight_pct: z.number() })).max(8),
+  top_holdings: upTo(z.object({ name: z.string(), weight_pct: z.number() }), 15),
+  regions: upTo(z.object({ region: z.string(), weight_pct: z.number() }), 10),
+  top_sectors: upTo(z.object({ sector: z.string(), weight_pct: z.number() }), 8),
   as_of: z.string(),
   notes: z.string(),
-  sources: z.array(Source).max(8),
+  sources: upTo(Source, 8),
 });
 export type FundResearchT = z.infer<typeof FundResearch>;
 
@@ -44,12 +46,12 @@ const StockResearch = z.object({
   business: z.string(),
   latest_results: Finding,
   valuation: Finding,
-  news: z.array(Finding).max(5),
+  news: upTo(Finding, 5),
   thesis_check: z.string(),
-  risks: z.array(z.string()).max(5),
+  risks: upTo(z.string(), 5),
   verdict: z.enum(["hold", "add", "trim"]),
   verdict_reason: z.string(),
-  sources: z.array(Source).max(10),
+  sources: upTo(Source, 10),
 });
 export type StockResearchT = z.infer<typeof StockResearch>;
 
@@ -157,13 +159,16 @@ Your job now: research one satellite stock for this month's review, then call su
 - Search for the latest quarterly results (period, revenue and growth, margins or profit, guidance), the current valuation (e.g. forward P/E or EV/sales, compared with its own history or peers), and the 2–4 news items of the last three months that matter most for owning it.
 - Be critical. Look for the bear case as hard as the bull case. A falling price is not a thesis; say whether the business case still holds.
 - Every finding needs a source URL taken from your search results and a date. Never invent a number, date or URL. If you can't find something, say so in the text.
+- Keep it tight: at most 4 news items, 5 risks and 8 sources.
+- Put your findings straight into submit_research; don't write them out as text first.
 - Verdict: "hold", "add" or "trim", judged for a long-term investor with his rules. "Add" only if the case is intact and the position isn't already large. "Trim" if the case is broken or the position is far too big.`;
 
 const FUND_SYSTEM = `${ROLE}
 
 Your job now: collect the facts of one index fund, then call submit_fund.
 - Prefer the issuer's own fund page (Vanguard, iShares, Xtrackers…) or justETF. Find: the index it tracks, TER, number of holdings, distributing or accumulating, the top 10 holdings with weights, the region split and the top sectors, with the date of that data.
-- Never invent numbers. Use null or "unknown" for what you can't find. Every source must be a URL from your search results.`;
+- Never invent numbers. Use null or "unknown" for what you can't find. Every source must be a URL from your search results.
+- At most 10 top holdings, 6 regions, 6 sectors and 4 sources. Put the facts straight into submit_fund; don't write them out as text first.`;
 
 const REPORT_SYSTEM = `${ROLE}
 
