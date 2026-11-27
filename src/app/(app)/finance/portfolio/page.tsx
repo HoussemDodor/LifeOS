@@ -8,6 +8,8 @@ export const dynamic = "force-dynamic";
 
 const pct = (n: number, digits = 0) =>
   `${(n * 100).toLocaleString("nl-NL", { minimumFractionDigits: digits, maximumFractionDigits: digits })}%`;
+const signed = (n: number) => `${n >= 0 ? "+" : "−"}${eur(Math.abs(n))}`;
+const signedPct = (n: number) => `${n >= 0 ? "+" : "−"}${pct(Math.abs(n), 1)}`;
 const shortDate = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(iso));
 
@@ -58,8 +60,27 @@ export default async function PortfolioPage() {
       ) : (
         <>
           <section aria-labelledby="total" className="mt-10">
-            <h2 id="total" className="text-sm text-muted">Invested</h2>
+            <h2 id="total" className="text-sm text-muted">Worth now</h2>
             <p className="mt-1 text-5xl font-semibold tracking-tight">{eur(p.total)}</p>
+            {p.result && (
+              <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-3">
+                <Stat label="You put in" value={eur(p.result.putIn)} />
+                <Stat
+                  label="Gain"
+                  value={`${signed(p.result.gain)} (${signedPct(p.result.gain / p.result.putIn)})`}
+                  tone={p.result.gain >= 0 ? "gain" : "loss"}
+                />
+                <Stat
+                  label={`Trading costs, ${p.result.trades} trades`}
+                  value={`${eur(p.result.fees, { maximumFractionDigits: 2, minimumFractionDigits: 2 })} (${pct(p.result.fees / p.result.putIn, 1)})`}
+                />
+              </dl>
+            )}
+            {p.result && (
+              <p className="mt-2 text-xs text-faint">
+                Price gain on what you hold now, after fees and currency exchange. Dividends paid out to cash aren’t included.
+              </p>
+            )}
             <p className="mt-2 text-xs text-faint">
               {[
                 p.asOf.degiro && `DEGIRO export of ${shortDate(p.asOf.degiro)}`,
@@ -196,13 +217,28 @@ function HoldingGroup({ title, swatch, rows }: { title: string; swatch: string; 
               </p>
             </div>
             {h.movable && h.bucket !== "crypto" && <BucketToggle symbol={h.symbol} name={h.name} bucket={h.bucket} />}
-            <div className="ml-auto w-24 shrink-0 text-right">
+            <div className="ml-auto w-28 shrink-0 text-right" title={h.putIn !== null ? `Put in ${eur(h.putIn)}, gain ${signed(h.gain!)}` : undefined}>
               <p className="tabular-nums">{eur(h.valueEur)}</p>
-              <p className="text-xs tabular-nums text-faint">{pct(h.share, 1)}</p>
+              <p className="text-xs tabular-nums text-faint">
+                {h.gain !== null && h.putIn ? (
+                  <span className={h.gain >= 0 ? "text-gain" : "text-loss"}>{signedPct(h.gain / h.putIn)}</span>
+                ) : null}
+                {h.gain !== null && h.putIn ? " · " : ""}
+                {pct(h.share, 1)}
+              </p>
             </div>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+function Stat({ label, value, tone }: { label: string; value: string; tone?: "gain" | "loss" }) {
+  return (
+    <div>
+      <dt className="text-xs text-faint">{label}</dt>
+      <dd className={`text-lg font-medium tabular-nums ${tone === "gain" ? "text-gain" : tone === "loss" ? "text-loss" : ""}`}>{value}</dd>
     </div>
   );
 }

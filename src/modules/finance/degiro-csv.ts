@@ -80,13 +80,17 @@ function table(input: string) {
   return { rows, names, find };
 }
 
-/** Amount at a header position; if that cell is a currency code, the number sits next to it. */
+/**
+ * Amount at a header position; if that cell is a currency code, the number sits next to it.
+ * An empty cell means no amount (e.g. no fee on the second part of a split order):
+ * never borrow the neighbouring column, which is a different amount.
+ */
 function amountAt(r: string[], i: number): { value: number | null; currency: string | null } {
   if (i < 0) return { value: null, currency: null };
   const here = num(r[i]);
   if (here !== null) return { value: here, currency: isCurrency(r[i + 1]) ? r[i + 1].trim() : isCurrency(r[i - 1]) ? r[i - 1].trim() : null };
   if (isCurrency(r[i])) return { value: num(r[i + 1]), currency: r[i].trim() };
-  return { value: num(r[i + 1]), currency: null };
+  return { value: null, currency: null };
 }
 
 export function parsePortfolio(input: string): DegiroHolding[] {
@@ -132,6 +136,10 @@ const toDate = (s: string) => {
   return /^\d{4}-\d{2}-\d{2}$/.test(s.trim()) ? s.trim() : null;
 };
 
+/** A fee as large as the whole trade is a misread column, not a fee. */
+const fees = (fee: number | null, total: number | null) =>
+  fee === null ? 0 : total !== null && Math.abs(fee) >= Math.abs(total) * 0.5 ? 0 : fee;
+
 export function parseTrades(input: string): DegiroTrade[] {
   const { rows, find } = table(input);
   const cDate = find("datum", "date");
@@ -166,7 +174,7 @@ export function parseTrades(input: string): DegiroTrade[] {
       price: price.value,
       currency: price.currency,
       totalEur: amountAt(r, cTotal).value,
-      feesEur: amountAt(r, cFees).value,
+      feesEur: fees(amountAt(r, cFees).value, amountAt(r, cTotal).value),
       // One order can fill in parts with the same order id, hence the counter.
       externalId: `${base}|${n}`,
     });

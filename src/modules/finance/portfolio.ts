@@ -24,6 +24,8 @@ export interface PortfolioHolding {
   bucket: Bucket;
   guessed: boolean; // LifeOS's first guess, not moved by hand
   movable: boolean; // DEGIRO holdings can move between core and satellite
+  putIn: number | null; // net money put in (buys minus sells, fees included), from the DEGIRO transactions
+  gain: number | null; // value now minus putIn
 }
 
 export interface PortfolioView {
@@ -34,6 +36,8 @@ export interface PortfolioView {
   parts: { core: number; stocks: number; crypto: number }; // € amounts
   shares: { core: number; satellite: number; crypto: number }; // of total
   holdings: PortfolioHolding[];
+  /** Totals over holdings with known trades. */
+  result: { putIn: number; worth: number; gain: number; fees: number; trades: number; since: string | null } | null;
   flags: { kind: "trim" | "crypto" | "drift" | "ok"; text: string }[];
 }
 
@@ -58,6 +62,27 @@ export async function getPortfolio(): Promise<PortfolioView> {
     for (const r of data ?? []) overrides.set(r.symbol, r.bucket);
   }
 
+  // Money put in per ISIN, from the DEGIRO transactions export.
+  const byIsin = new Map<string, number>();
+  let fees = 0;
+  let tradeCount = 0;
+  let since: string | null = null;
+  if (hasDatabase()) {
+    const { data } = await db().from("portfolio_trades").select("isin,traded_at,total_eur,fees_eur");
+    for (const t of data ?? []) {
+      if (t.total_eur !== null) byIsin.set(t.isin, (byIsin.get(t.isin) ?? 0) - Number(t.total_eur));
+      fees += -Number(t.fees_eur ?? 0);
+      tradeCount++;
+      if (!since || t.traded_at < since) since = t.traded_at;
+    }
+  } else if (isSample) {
+    byIsin.set("IE00BK5BQT80", 13950);
+    byIsin.set("NL0010273215", 2210);
+    fees = 21;
+    tradeCount = 9;
+    since = "2025-06-02";
+  }
+
   const mine = holdings.filter((h) => h.accountId === degiro?.id || h.accountId === bitvavo?.id);
   const isCash = (h: HoldingView) => h.symbol === "CASH";
   const cash = mine.filter(isCash).reduce((s, h) => s + h.valueEur, 0);
@@ -76,9 +101,23 @@ export async function getPortfolio(): Promise<PortfolioView> {
         bucket: (crypto ? "crypto" : (manual ?? guessBucket(h.name))) as Bucket,
         guessed: !crypto && !manual,
         movable: !crypto,
+        putIn: byIsin.has(h.symbol) ? Math.round(byIsin.get(h.symbol)! * 100) / 100 : null,
+        gain: byIsin.has(h.symbol) ? Math.round((h.valueEur - byIsin.get(h.symbol)!) * 100) / 100 : null,
       };
     })
     .sort((a, b) => b.valueEur - a.valueEur);
+
+  const known = rows.filter((r) => r.putIn !== null);
+  const result = known.length
+    ? {
+        putIn: known.reduce((s, r) => s + r.putIn!, 0),
+        worth: known.reduce((s, r) => s + r.valueEur, 0),
+        gain: known.reduce((s, r) => s + r.gain!, 0),
+        fees,
+        trades: tradeCount,
+        since,
+      }
+    : null;
 
   const sum = (b: Bucket) => rows.filter((r) => r.bucket === b).reduce((s, r) => s + r.valueEur, 0);
   const parts = { core: sum("core"), stocks: sum("satellite"), crypto: sum("crypto") };
@@ -126,6 +165,7 @@ export async function getPortfolio(): Promise<PortfolioView> {
     parts,
     shares,
     holdings: rows,
+    result,
     flags,
   };
 }
