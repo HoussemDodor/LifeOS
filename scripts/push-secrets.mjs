@@ -5,7 +5,16 @@
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
-const ALL = ["SESSION_SECRET", "SETUP_TOKEN", "SUPABASE_SERVICE_ROLE_KEY", "NOTION_TOKEN", "RESEND_API_KEY"];
+const ALL = [
+  "SESSION_SECRET",
+  "SETUP_TOKEN",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "NOTION_TOKEN",
+  "RESEND_API_KEY",
+  "BITVAVO_API_KEY",
+  "BITVAVO_API_SECRET",
+  "ANTHROPIC_API_KEY",
+];
 const SECRETS = process.argv.length > 2 ? process.argv.slice(2).filter((n) => ALL.includes(n)) : ALL;
 const env = Object.fromEntries(
   readFileSync(".env.production.local", "utf8")

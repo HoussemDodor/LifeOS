@@ -174,6 +174,7 @@ export const CATEGORIES = [
   "Investing",
   "Cash",
   "Transfers",
+  "Paybacks",
   "Other",
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
@@ -191,6 +192,9 @@ const RULES: [Category, RegExp][] = [
   ["Investing", /degiro|flatex|bitvavo|coinbase|kraken|meesman|brand new day|trade republic|saxo/],
 ];
 
+/** Tikkie / payment-request paybacks: money friends send back for a shared cost. */
+export const isPaybackText = (text: string) => /tikkie|betaalverzoek|payment request/i.test(text);
+
 /** Rule-based category from the counterparty name, notes and transaction type. */
 export function categorize(row: Pick<IngRow, "name" | "notes" | "type" | "amount" | "counterIban">, ownAccounts: Set<string>): Category {
   const text = `${row.name} ${row.notes ?? ""}`.toLowerCase();
@@ -198,6 +202,7 @@ export function categorize(row: Pick<IngRow, "name" | "notes" | "type" | "amount
   if ((row.counterIban && ownAccounts.has(row.counterIban)) || /spaarrekening|oranje spaar|savings account/.test(text)) {
     return "Transfers";
   }
+  if (row.amount > 0 && isPaybackText(text)) return "Paybacks";
   if (/geldautomaat|atm|opname/.test(type) || /geldautomaat/.test(text)) return "Cash";
   if (row.amount > 0 && /salaris|salary|loon|wages|payroll/.test(text)) return "Income";
   for (const [cat, re] of RULES) if (re.test(text)) return cat;
