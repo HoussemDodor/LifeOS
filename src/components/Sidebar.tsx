@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { modules } from "@/modules/registry";
+import { AiUsage, type AiUsageProps } from "./AiUsage";
 
-export function Sidebar() {
+export function Sidebar({ ai }: { ai: AiUsageProps | null }) {
   const path = usePathname();
   const live = modules.filter((m) => m.status === "live");
   const planned = modules.filter((m) => m.status === "planned");
@@ -51,12 +52,15 @@ export function Sidebar() {
         })}
       </div>
 
-      <form action="/api/auth/logout" method="post" className="md:mt-auto">
-        <button className="flex shrink-0 items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-faint hover:text-text">
-          <LogOut className="size-4" strokeWidth={1.75} aria-hidden="true" />
-          Sign out
-        </button>
-      </form>
+      <div className="flex shrink-0 items-center md:mt-auto md:block">
+        {ai && <AiUsage {...ai} />}
+        <form action="/api/auth/logout" method="post">
+          <button className="flex shrink-0 items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-faint hover:text-text">
+            <LogOut className="size-4" strokeWidth={1.75} aria-hidden="true" />
+            Sign out
+          </button>
+        </form>
+      </div>
     </nav>
   );
 }

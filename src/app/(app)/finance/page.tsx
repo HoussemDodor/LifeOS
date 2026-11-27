@@ -175,9 +175,9 @@ export default async function FinancePage() {
         <section aria-labelledby="txns" className="mt-16">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 id="txns" className="text-sm text-muted">Recent transactions</h2>
-            <p className="text-xs text-faint">
+            <div className="text-xs text-faint">
               Tap one to fix its category or a Tikkie match · <ReapplyRules />
-            </p>
+            </div>
           </div>
           <TransactionList transactions={transactions} showAccount={bank.length > 1} />
         </section>

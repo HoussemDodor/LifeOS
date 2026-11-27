@@ -1,6 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { recordUsage } from "@/lib/ai-usage";
 import { db } from "@/lib/supabase";
 import { addMonths, type CheckinFacts } from "./facts";
 import { CATEGORIES } from "./ing-csv";
@@ -101,6 +102,8 @@ export async function runCoach(checkinId: string, facts: CheckinFacts): Promise<
         ],
       })
       .finalMessage();
+    // Log the cost first, so it's counted even if the answer turns out unusable.
+    await recordUsage("coach", message.model, message.usage, checkinId);
 
     if (message.stop_reason === "refusal") throw new Error("The model declined this request.");
     if (message.stop_reason === "max_tokens") throw new Error("The report was cut off (max_tokens).");
