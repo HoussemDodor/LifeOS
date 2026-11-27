@@ -190,7 +190,13 @@ export default async function CheckinPage({ searchParams }: { searchParams: Prom
             </aside>
           </div>
 
-          <p className="mt-10 text-xs text-faint">
+          <p className="mt-10 text-sm text-muted">
+            Questions about this report?{" "}
+            <Link href="/finance/coach" className="text-dawn underline-offset-4 hover:underline">
+              Ask the coach
+            </Link>
+          </p>
+          <p className="mt-2 text-xs text-faint">
             Written by Claude from your own transactions. LifeOS computes every total; the coach only interprets them.
           </p>
         </article>

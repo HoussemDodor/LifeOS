@@ -8,7 +8,7 @@ import { db } from "@/lib/supabase";
  * Income category counts as money in, other incoming money is a refund.
  */
 
-const NEITHER = new Set(["Transfers", "Investing", "Paybacks"]);
+export const NEITHER = new Set(["Transfers", "Investing", "Paybacks"]);
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 export const amsterdamYmd = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Amsterdam" }).format(d);
@@ -36,7 +36,7 @@ export function shopKey(name: string): string {
     .trim();
 }
 
-interface Row {
+export interface Row {
   id: string;
   date: string;
   amount: number;
@@ -47,7 +47,7 @@ interface Row {
   offsetsId: string | null;
 }
 
-async function loadRows(from: string, to: string): Promise<Row[]> {
+export async function loadRows(from: string, to: string): Promise<Row[]> {
   const out: Row[] = [];
   for (let page = 0; ; page++) {
     const { data, error } = await db()
