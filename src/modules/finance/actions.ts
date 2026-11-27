@@ -22,7 +22,7 @@ async function readText(file: File): Promise<string> {
 }
 
 const last4 = (account: string) => account.replace(/\D/g, "").slice(-4);
-const plural = (n: number, word: string) => `${n.toLocaleString("en-GB")} ${word}${n === 1 ? "" : "s"}`;
+const plural = (n: number, word: string) => `${n.toLocaleString("nl-NL")} ${word}${n === 1 ? "" : "s"}`;
 
 export async function importIngCsv(_prev: ImportResult | null, form: FormData): Promise<ImportResult> {
   if (!(await isSignedIn())) return { ok: false, message: "Sign in again to import." };

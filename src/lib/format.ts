@@ -1,7 +1,8 @@
 const TZ = "Europe/Amsterdam";
 
+/** Money in Dutch notation: € 1.976,55 (Houssem is Dutch; keep nl-NL for all amounts). */
 export const eur = (n: number, opts: Intl.NumberFormatOptions = {}) =>
-  new Intl.NumberFormat("en-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0, ...opts }).format(n);
+  new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0, ...opts }).format(n);
 
 export const time = (iso: string) =>
   new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ }).format(new Date(iso));
