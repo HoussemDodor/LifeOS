@@ -21,6 +21,7 @@ Last updated: 2026-11-27
 | P5 | English interface and briefings | ✅ |
 | P6 | Works on phone as well as desktop | ✅ |
 | P7 | *(suggested)* Installable as a home-screen app on iPhone (PWA manifest + icon) | ⬜ |
+| P11 | AI usage and costs tracker in the bottom-left of the sidebar: token use and spend of the LifeOS AI agents (spending coach, portfolio analyst, chats), e.g. this month vs the API spend cap | ⬜ |
 
 ## 2. Inbox, agenda and to-dos
 
