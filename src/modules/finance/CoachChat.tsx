@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Markdown } from "@/components/Markdown";
+import { CoachCard } from "./CoachCard";
 import type { ChatEvent, ChatMessageView } from "./coach-chat";
 
 const SUGGESTIONS = [
@@ -82,6 +83,8 @@ export function CoachChat({
           } else if (e.type === "text") {
             setStatus(null);
             patchLast((m) => ({ ...m, text: m.text + e.text }));
+          } else if (e.type === "card") {
+            patchLast((m) => ({ ...m, cards: [...(m.cards ?? []), e.card] }));
           } else if (e.type === "tool") {
             setStatus(e.label);
           } else if (e.type === "error") {
@@ -144,6 +147,13 @@ export function CoachChat({
                 <p className="mb-1.5 text-xs text-faint">Coach</p>
                 {m.text ? (
                   <Markdown text={m.text} className="text-[15px] leading-relaxed text-text/90" />
+                ) : null}
+                {m.cards?.length ? (
+                  <div className="mt-5 space-y-4">
+                    {m.cards.map((c, i) => (
+                      <CoachCard key={i} card={c} />
+                    ))}
+                  </div>
                 ) : null}
                 {m.pending && status && (
                   <p role="status" className="mt-1 flex items-center gap-2.5 text-sm text-muted">

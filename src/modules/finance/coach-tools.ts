@@ -52,6 +52,7 @@ const TotalsInput = z.object({
   search: z.string().max(80).optional(),
 });
 const SearchChatsInput = z.object({ query: z.string().min(2).max(80) });
+const RecurringInput = z.object({ months: z.number().int().min(3).max(12).optional() });
 const NoInput = z.object({}).passthrough();
 
 const matches = (r: Row, search?: string) =>
@@ -131,6 +132,83 @@ async function incomeAndSavings(raw: unknown) {
     months: [...months.values()]
       .sort((a, b) => a.month.localeCompare(b.month))
       .map((m) => ({ month: m.month, came_in: r2(m.came_in), spent: r2(m.spent), saved: r2(m.came_in - m.spent) })),
+  };
+}
+
+/**
+ * Costs that come back every month at a steady amount (subscriptions, insurance,
+ * phone, gym, loans), from the last N months of data. Flags price changes and
+ * paybacks that stopped.
+ */
+async function recurringCosts(raw: unknown) {
+  const { months = 6 } = RecurringInput.parse(raw ?? {});
+  const { data: last } = await db().from("transactions").select("booked_at").order("booked_at", { ascending: false }).limit(1).maybeSingle();
+  if (!last) return { items: [], note: "No transactions yet." };
+  const end: string = last.booked_at;
+  const startMonth = new Date(`${end.slice(0, 7)}-01T00:00:00Z`);
+  startMonth.setUTCMonth(startMonth.getUTCMonth() - (months - 1));
+  const from = startMonth.toISOString().slice(0, 10);
+  const rows = (await rowsWithShare(from, end)).filter((r) => r.amount < 0 && !NEITHER.has(r.category));
+
+  const byShop = new Map<string, typeof rows>();
+  for (const r of rows) {
+    const k = shopKey(r.shop) || r.shop.toLowerCase();
+    byShop.set(k, [...(byShop.get(k) ?? []), r]);
+  }
+  const minMonths = Math.max(3, Math.ceil(months / 2));
+  const median = (xs: number[]) => {
+    const s = [...xs].sort((a, b) => a - b);
+    return s[Math.floor(s.length / 2)];
+  };
+  const items = [...byShop.values()]
+    .map((list) => {
+      list.sort((a, b) => a.date.localeCompare(b.date));
+      const perMonth = new Map<string, typeof list>();
+      for (const r of list) perMonth.set(r.date.slice(0, 7), [...(perMonth.get(r.date.slice(0, 7)) ?? []), r]);
+      const seen = perMonth.size;
+      // Recurring = about one charge a month at a steady amount (one odd month allowed).
+      const chargesPerMonth = list.length / seen;
+      const amounts = list.map((r) => -r.amount);
+      const typical = median(amounts);
+      const steady = amounts.filter((a) => Math.abs(a - typical) <= Math.max(1, typical * 0.15)).length;
+      if (seen < minMonths || chargesPerMonth > 1.5 || steady < Math.max(3, seen - 1)) return null;
+
+      const lastRow = list.at(-1)!;
+      const lastAmount = -lastRow.amount;
+      const earlier = amounts.slice(0, -2);
+      const before = earlier.length >= 2 ? median(earlier) : null;
+      const recent = amounts.slice(-2);
+      const priceChange =
+        before !== null && recent.every((a) => Math.abs(a - lastAmount) < 0.01) && Math.abs(lastAmount - before) >= Math.max(0.5, before * 0.02)
+          ? { from: r2(before), to: r2(lastAmount), since: list.at(-2)!.date.slice(0, 7), extra_per_year: r2((lastAmount - before) * 12) }
+          : undefined;
+      const paidBackMonths = [...perMonth.entries()].filter(([, rs]) => rs.some((r) => -r.share < -r.amount - 0.01)).map(([m]) => m);
+      const odd = list.filter((r) => Math.abs(-r.amount - typical) > Math.max(1, typical * 0.15)).map((r) => ({ date: r.date, amount: r2(-r.amount) }));
+      return {
+        shop: lastRow.shop,
+        category: lastRow.category,
+        per_month: r2(typical),
+        per_year: r2(typical * 12),
+        last_charged: lastRow.date,
+        last_amount: r2(lastAmount),
+        last_your_share: r2(-lastRow.share),
+        months_seen: seen,
+        ...(priceChange ? { price_change: priceChange } : {}),
+        ...(paidBackMonths.length ? { paid_back_in: paidBackMonths } : {}),
+        ...(odd.length ? { unusual_charges: odd } : {}),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .sort((a, b) => b.per_month - a.per_month);
+
+  const total = r2(items.reduce((s, i) => s + i.per_month, 0));
+  return {
+    period: { from, to: end, months },
+    total_per_month: total,
+    total_per_year: r2(total * 12),
+    items,
+    not_included:
+      "Charges with changing amounts (e.g. Apple, groceries), yearly charges, and anything paid by ING credit card, Klarna or PayPal. Use find_transactions to check those.",
   };
 }
 
@@ -248,6 +326,16 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     eager_input_streaming: true,
   },
   {
+    name: "recurring_costs",
+    description:
+      "Fixed monthly costs found in the bank data: every shop charged about once a month at a steady amount (subscriptions, insurance, phone, gym, loans), whatever category it's in. Per item: monthly and yearly cost, last charge, price changes, months with a payback, unusual charges. Plus the monthly and yearly total. Use it for any question about subscriptions, fixed costs or recurring payments.",
+    input_schema: {
+      type: "object",
+      properties: { months: { type: "integer", minimum: 3, maximum: 12, description: "How many recent months to scan (default 6)" } },
+      additionalProperties: false,
+    },
+  },
+  {
     name: "checkin_reports",
     description:
       "The saved monthly check-in reports (newest first, up to 12): headline, the full briefing you wrote, savings ideas, the promises made and how they were scored, plus his savings targets.",
@@ -265,12 +353,50 @@ export const TOOLS: Anthropic.Beta.BetaTool[] = [
     },
     eager_input_streaming: true,
   },
+  {
+    name: "show_card",
+    description:
+      "Attach a visual card under your answer. kind: \"ranking\" = horizontal bars, biggest first (categories, shops); \"months\" = a column per month, oldest first, labels as YYYY-MM; \"list\" = rows of label, amount and a short note (fixed costs, specific payments). Every value (and total) must be copied exactly from a lookup result in this turn, or the card is refused. Euros, positive for spending. highlight = the label of the one row your answer is about (it gets the accent colour).",
+    input_schema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["ranking", "months", "list"] },
+        title: { type: "string", description: "Short sentence-case title, e.g. \"Food delivery per month\"" },
+        rows: {
+          type: "array",
+          minItems: 1,
+          maxItems: 24,
+          items: {
+            type: "object",
+            properties: {
+              label: { type: "string" },
+              value: { type: "number" },
+              note: { type: "string", description: "Optional, list cards only, max ~6 words, e.g. \"up from € 21,99 in Sep\"" },
+            },
+            required: ["label", "value"],
+            additionalProperties: false,
+          },
+        },
+        highlight: { type: "string" },
+        total: {
+          type: "object",
+          properties: { label: { type: "string" }, value: { type: "number" } },
+          required: ["label", "value"],
+          additionalProperties: false,
+        },
+      },
+      required: ["kind", "title", "rows"],
+      additionalProperties: false,
+    },
+    eager_input_streaming: true,
+  },
 ];
 
 export const TOOL_LABEL: Record<string, string> = {
   find_transactions: "Looking up transactions",
   spending_totals: "Adding up spending",
   income_and_savings: "Checking income and savings",
+  recurring_costs: "Finding your fixed costs",
   checkin_reports: "Reading your check-ins",
   search_past_chats: "Searching earlier chats",
 };
@@ -285,6 +411,8 @@ export async function runTool(name: string, input: unknown, chatId: string): Pro
           ? await spendingTotals(input)
           : name === "income_and_savings"
             ? await incomeAndSavings(input)
+            : name === "recurring_costs"
+              ? await recurringCosts(input)
             : name === "checkin_reports"
               ? (NoInput.parse(input ?? {}), await checkinReports())
               : name === "search_past_chats"
