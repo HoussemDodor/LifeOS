@@ -6,6 +6,8 @@ import { clashesWith, workoutOn } from "@/modules/health/schedule";
 import { DayRibbon } from "@/modules/today/DayRibbon";
 import { TaskList } from "@/modules/today/TaskList";
 import { getTodayData } from "@/modules/today/data";
+import { getHabits } from "@/modules/habits/data";
+import { TodayHabits } from "@/modules/habits/TodayHabits";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,11 @@ function greeting(now: Date) {
 
 export default async function TodayPage() {
   const now = new Date();
-  const { briefing, tasks, netWorth, isSample } = await getTodayData(now);
+  const [{ briefing, tasks, netWorth, isSample }, habitsData] = await Promise.all([
+    getTodayData(now),
+    // Habits are a side panel: if the database is unreachable, Today still loads.
+    getHabits(now).catch((err) => (console.error(err), null)),
+  ]);
   const actionEmails = briefing?.emails.filter((e) => e.needsAction) ?? [];
   const events = briefing?.events ?? [];
   const workout = workoutOn(now);
@@ -106,6 +112,20 @@ export default async function TodayPage() {
               })}
             />
           </section>
+
+          {habitsData && (
+            <section aria-labelledby="habits">
+              <div className="flex items-baseline justify-between">
+                <h2 id="habits" className="text-sm text-muted">Habits</h2>
+                {habitsData.habits.length > 0 && (
+                  <Link href="/habits" className="text-xs text-faint hover:text-text">
+                    History
+                  </Link>
+                )}
+              </div>
+              <TodayHabits habits={habitsData.habits} today={habitsData.today} />
+            </section>
+          )}
 
           {netWorth && (
             <section aria-labelledby="networth">

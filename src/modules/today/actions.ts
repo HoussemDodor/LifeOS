@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidateTag } from "next/cache";
-import { cookies } from "next/headers";
 import { getDataSource, getPage, hasNotion, NOTION_TAG, updatePageProperties } from "@/lib/notion";
-import { devBypassEnabled, SESSION_COOKIE, verifySessionToken } from "@/lib/session";
+import { isSignedIn } from "@/lib/require-session";
 
 export type TaskActionResult = { ok: true } | { ok: false; error: string };
 
@@ -15,8 +14,7 @@ const sameId = (a?: string, b?: string) => Boolean(a && b) && a!.replace(/-/g, "
  * Only pages that live in that database can be changed, and only the done checkbox.
  */
 export async function setTaskDone(taskId: string, done: boolean): Promise<TaskActionResult> {
-  // The middleware already gates this route; check again so the action never runs signed out.
-  if (!devBypassEnabled() && !(await verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value))) {
+  if (!(await isSignedIn())) {
     return { ok: false, error: "Sign in again to update tasks." };
   }
   if (typeof taskId !== "string" || typeof done !== "boolean") return { ok: false, error: "That task can’t be updated." };

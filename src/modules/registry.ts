@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  Flame,
   HeartPulse,
   Receipt,
   Sun,
@@ -31,6 +32,7 @@ export const modules: LifeModule[] = [
   { id: "inbox", name: "Inbox & agenda", href: "/inbox", icon: CalendarDays, status: "live", description: "Outlook mail summaries and meetings" },
   { id: "finance", name: "Finance", href: "/finance", icon: Wallet, status: "live", description: "ING, DEGIRO and Bitvavo" },
   { id: "health", name: "Health & training", href: "/health", icon: HeartPulse, status: "live", description: "Gym schedule; Hevy and Apple Health later" },
+  { id: "habits", name: "Habits", href: "/habits", icon: Flame, status: "live", description: "Daily habits and streaks" },
   { id: "goals", name: "Goals & journal", href: "/goals", icon: Target, status: "planned", description: "Goals, daily notes and reflections" },
   { id: "bills", name: "Subscriptions", href: "/bills", icon: Receipt, status: "planned", description: "Recurring costs found in your transactions" },
 ];
