@@ -20,7 +20,7 @@ Last updated: 2026-11-28
 | P4 | Expandable: every area is a module (folder + route + one line in `src/modules/registry.ts`) | ✅ |
 | P5 | English interface and briefings | ✅ |
 | P6 | Works on phone as well as desktop | ✅ |
-| P7 | *(suggested)* Installable as a home-screen app on iPhone (PWA manifest + icon) | ⬜ |
+| P7 | Installable as a home-screen app on iPhone (PWA manifest + icon), opens full screen | ✅ manifest, dawn icon, standalone mode, status-bar safe area |
 | P11 | AI usage and costs tracker in the bottom-left of the sidebar: token use and spend of the LifeOS AI agents (spending coach, portfolio analyst, chats), e.g. this month vs the API spend cap | ✅ every Claude call logged in `ai_usage`; sidebar shows this month in US$ vs `AI_SPEND_CAP_USD` ($10), per feature on hover |
 
 ## 2. Inbox, agenda and to-dos

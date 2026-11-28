@@ -76,7 +76,7 @@ export function Sidebar({ ai }: { ai: AiUsageProps | null }) {
       </nav>
 
       {/* Phone header */}
-      <header className="flex items-center justify-between border-b border-line px-2 py-2 md:hidden">
+      <header className="flex items-center justify-between border-b border-line px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:hidden">
         <Logo />
         <div className="flex items-center">
           {ai && <AiUsage {...ai} />}

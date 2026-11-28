@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Newsreader, Schibsted_Grotesk } from "next/font/google";
 import "./globals.css";
 
@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   title: "LifeOS",
   description: "Personal dashboard",
   robots: { index: false, follow: false },
+  // Home-screen app on iPhone: full screen, dark status bar over the page.
+  appleWebApp: { capable: true, title: "LifeOS", statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#13151d",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

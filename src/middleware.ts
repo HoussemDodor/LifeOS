@@ -2,10 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { devBypassEnabled, SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
 const PUBLIC = ["/login", "/api/auth/"];
+// Home-screen app files: iOS fetches these without the session cookie. Exact paths only.
+const PUBLIC_EXACT = ["/manifest.webmanifest", "/apple-icon", "/app-icon/192", "/app-icon/512", "/app-icon/maskable-512"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (PUBLIC.some((p) => pathname === p || pathname.startsWith(p))) return NextResponse.next();
+  if (PUBLIC_EXACT.includes(pathname)) return NextResponse.next();
   if (devBypassEnabled()) return NextResponse.next();
 
   if (await verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.next();
