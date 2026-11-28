@@ -38,7 +38,7 @@ Last updated: 2026-11-28
 
 | # | Requirement | Status |
 |---|---|---|
-| F1 | ING current and savings accounts and transactions | ✅ live via CSV upload on Finance (accounts, balances, categories, no duplicates), used for the October check-in. Live sync via Enable Banking possible later |
+| F1 | ING current and savings accounts and transactions | 🟡 current account live via CSV upload (used for the October check-in); the savings account export hasn't been uploaded yet. Live sync via Enable Banking possible later |
 | F2 | DEGIRO portfolio | ✅ live: Portfolio + Transactions CSV in the same upload as ING; real export loaded 2026-11-27 |
 | F3 | Bitvavo crypto | 🟡 built: read-only sync, refreshes when Finance opens; needs your View-only API key (push-secrets) |
 | F4 | Net worth over time, spending by category, savings | ⬜ |
