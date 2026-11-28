@@ -134,6 +134,7 @@ function sample(): AnalystPageData {
         policy: { core_pct: 75, satellite_pct: 25, crypto_cap_pct: 5, trim_satellite_above_pct: 50 },
         totals: { worth_eur: 18463, put_in_eur: 16160, gain_eur: 1319, gain_pct: 8.2, trading_costs_eur: 21, uninvested_cash_eur: 0 },
         split_pct: { core: 83.5, satellite: 16.5, crypto: 5.3 },
+        benchmark: null,
         rule_checks: [],
         holdings: [
           { isin: "NL0010273215", name: "ASML Holding", group: "satellite", value_eur: 2070.6, share_of_portfolio_pct: 11.2, put_in_eur: 2210, gain_eur: -139.4, gain_pct: -6.3, buys: [] },

@@ -1,6 +1,7 @@
 import "server-only";
 import { eur } from "@/lib/format";
 import { db, hasDatabase } from "@/lib/supabase";
+import { compareWithBenchmark, type BenchmarkResult } from "./benchmark";
 import { getFinance, type HoldingView } from "./data";
 
 /**
@@ -38,6 +39,8 @@ export interface PortfolioView {
   holdings: PortfolioHolding[];
   /** Totals over holdings with known trades. */
   result: { putIn: number; worth: number; gain: number; fees: number; trades: number; since: string | null } | null;
+  /** The same euros, on the same days, in an all-world fund. Null when prices are unavailable. */
+  benchmark: BenchmarkResult | null;
   flags: { kind: "trim" | "crypto" | "drift" | "ok"; text: string }[];
 }
 
@@ -64,13 +67,17 @@ export async function getPortfolio(): Promise<PortfolioView> {
 
   // Money put in per ISIN, from the DEGIRO transactions export.
   const byIsin = new Map<string, number>();
+  const flows: { isin: string; date: string; eur: number }[] = [];
   let fees = 0;
   let tradeCount = 0;
   let since: string | null = null;
   if (hasDatabase()) {
     const { data } = await db().from("portfolio_trades").select("isin,traded_at,total_eur,fees_eur");
     for (const t of data ?? []) {
-      if (t.total_eur !== null) byIsin.set(t.isin, (byIsin.get(t.isin) ?? 0) - Number(t.total_eur));
+      if (t.total_eur !== null) {
+        byIsin.set(t.isin, (byIsin.get(t.isin) ?? 0) - Number(t.total_eur));
+        flows.push({ isin: t.isin, date: t.traded_at, eur: -Number(t.total_eur) });
+      }
       fees += -Number(t.fees_eur ?? 0);
       tradeCount++;
       if (!since || t.traded_at < since) since = t.traded_at;
@@ -119,6 +126,16 @@ export async function getPortfolio(): Promise<PortfolioView> {
       }
     : null;
 
+  // Compare like with like: the money behind what you hold now, valued on your export date.
+  const held = new Set(known.map((r) => r.symbol));
+  const degiroDate = (degiro && mine.find((h) => h.accountId === degiro.id)?.asOf.slice(0, 10)) ?? new Date().toISOString().slice(0, 10);
+  const benchmark: BenchmarkResult | null = isSample && !hasDatabase()
+    ? { name: "Vanguard FTSE All-World (Acc)", putIn: 16160, value: 17402.5, gain: 1242.5, gainPct: 7.7, priceDate: degiroDate }
+    : await compareWithBenchmark(
+        flows.filter((f) => held.has(f.isin)).sort((a, b) => a.date.localeCompare(b.date)),
+        degiroDate,
+      );
+
   const sum = (b: Bucket) => rows.filter((r) => r.bucket === b).reduce((s, r) => s + r.valueEur, 0);
   const parts = { core: sum("core"), stocks: sum("satellite"), crypto: sum("crypto") };
   const shares = total
@@ -166,6 +183,7 @@ export async function getPortfolio(): Promise<PortfolioView> {
     shares,
     holdings: rows,
     result,
+    benchmark,
     flags,
   };
 }

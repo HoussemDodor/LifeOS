@@ -14,6 +14,8 @@ export interface AnalystFacts {
   policy: { core_pct: number; satellite_pct: number; crypto_cap_pct: number; trim_satellite_above_pct: number };
   totals: { worth_eur: number; put_in_eur: number | null; gain_eur: number | null; gain_pct: number | null; trading_costs_eur: number | null; uninvested_cash_eur: number };
   split_pct: { core: number; satellite: number; crypto: number };
+  /** The same euros on the same days in an all-world fund (his benchmark), computed by LifeOS. */
+  benchmark: { fund: string; value_eur: number; gain_eur: number; gain_pct: number; price_date: string; you_minus_benchmark_eur: number } | null;
   rule_checks: string[];
   holdings: {
     isin: string;
@@ -74,6 +76,17 @@ export async function buildAnalystFacts(month: string): Promise<AnalystFacts> {
       uninvested_cash_eur: r2(p.cash),
     },
     split_pct: { core: r1(p.shares.core * 100), satellite: r1(p.shares.satellite * 100), crypto: r1(p.shares.crypto * 100) },
+    benchmark:
+      p.benchmark && p.result
+        ? {
+            fund: p.benchmark.name,
+            value_eur: p.benchmark.value,
+            gain_eur: p.benchmark.gain,
+            gain_pct: p.benchmark.gainPct,
+            price_date: p.benchmark.priceDate,
+            you_minus_benchmark_eur: r2(p.result.worth - p.benchmark.value),
+          }
+        : null,
     rule_checks: p.flags.map((f) => f.text),
     holdings: p.holdings.map((h) => ({
       isin: h.symbol,

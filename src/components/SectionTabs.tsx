@@ -18,7 +18,9 @@ export function SectionTabs({ moduleId }: { moduleId: string }) {
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
   const activeRef = useRef<HTMLAnchorElement>(null);
   // On narrow screens the tabs can scroll: keep the current one in view.
-  useEffect(() => activeRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" }), [active]);
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [active]);
 
   return (
     <nav aria-label="Sections" className="-mx-4 mb-8 overflow-x-auto overflow-y-hidden border-b border-line px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">

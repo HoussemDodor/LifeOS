@@ -2,7 +2,8 @@ import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import { eur } from "@/lib/format";
 import { BucketToggle } from "@/modules/finance/BucketToggle";
-import { getPortfolio, POLICY, type Bucket, type PortfolioHolding } from "@/modules/finance/portfolio";
+import type { BenchmarkResult } from "@/modules/finance/benchmark";
+import { getPortfolio, POLICY, type Bucket, type PortfolioHolding, type PortfolioView } from "@/modules/finance/portfolio";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +89,8 @@ export default async function PortfolioPage() {
                 .join(" · ")}
             </p>
           </section>
+
+          {p.result && p.benchmark && <Benchmark you={p.result} b={p.benchmark} />}
 
           <section aria-labelledby="split" className="mt-10 max-w-3xl">
             <h2 id="split" className="text-sm text-muted">Split</h2>
@@ -237,5 +240,54 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "ga
       <dt className="text-xs text-faint">{label}</dt>
       <dd className={`text-lg font-medium tabular-nums ${tone === "gain" ? "text-gain" : tone === "loss" ? "text-loss" : ""}`}>{value}</dd>
     </div>
+  );
+}
+
+/**
+ * You vs the same euros in an all-world fund, on the same days. Two bars on
+ * one scale, with a tick where the money you put in sits, so the gain on
+ * each side reads as the distance past that tick.
+ */
+function Benchmark({ you, b }: { you: NonNullable<PortfolioView["result"]>; b: BenchmarkResult }) {
+  const diff = you.worth - b.value;
+  const max = Math.max(you.worth, b.value, you.putIn) * 1.04;
+  const rows = [
+    { label: "Your picks", value: you.worth, gain: you.gain / you.putIn, bar: "bg-text/80" },
+    { label: "All-world instead", value: b.value, gain: b.gainPct / 100, bar: "bg-muted/45" },
+  ];
+  return (
+    <section aria-labelledby="bench" className="mt-10 max-w-3xl">
+      <h2 id="bench" className="text-sm text-muted">Against an all-world fund</h2>
+      <p className="mt-2 max-w-[62ch] text-[15px]">
+        {Math.abs(diff) < 50
+          ? "You’re level with "
+          : diff > 0
+            ? <>You’re <span className="font-semibold text-gain">{eur(diff)} ahead</span> of </>
+            : <>You’re <span className="font-semibold text-loss">{eur(-diff)} behind</span> </>}
+        putting the same euros, on the same days, into {b.name}.
+      </p>
+      <div className="mt-5">
+        <ul className="space-y-2.5">
+          {rows.map((r) => (
+            <li key={r.label} className="grid grid-cols-[7.5rem_minmax(0,1fr)_auto] items-center gap-3 sm:grid-cols-[9rem_minmax(0,1fr)_auto]">
+              <span className="text-sm text-muted">{r.label}</span>
+              <span className="relative block" aria-hidden="true">
+                <span className={`block h-3 rounded-r-[4px] ${r.bar}`} style={{ width: `${(r.value / max) * 100}%` }} />
+                {/* Where the money you put in sits on this scale */}
+                <span className="absolute -inset-y-1 w-0.5 rounded-full bg-dawn" style={{ left: `${(you.putIn / max) * 100}%` }} />
+              </span>
+              <span className="min-w-[8.5rem] text-right text-sm tabular-nums">
+                {eur(r.value)}{" "}
+                <span className={r.gain >= 0 ? "text-gain" : "text-loss"}>{signedPct(r.gain)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="mt-3 text-xs text-faint">
+        The gold mark is the {eur(you.putIn)} you put in. All-world price of {shortDate(b.priceDate)}, valued on the same day as your DEGIRO
+        export. Your S&amp;P 500 fund pays dividends out to cash, which isn’t counted here; the all-world fund reinvests them.
+      </p>
+    </section>
   );
 }

@@ -176,7 +176,7 @@ Your job now: write this month's portfolio review. You get LifeOS's numbers (com
 
 What to return (the schema enforces the shape):
 - headline: one line, max ~12 words, the most important thing this month.
-- briefing: Markdown, 300–500 words, "## " headings, "- " bullets, **bold** for key numbers. Suggested flow: the verdict (worth, gain, split vs 75/25, the rule checks) · core · satellite, biggest issues first · where new money should go · what to watch. Say which positions are dips worth buying (his style) and which have a broken case; don't treat every dip as a chance.
+- briefing: Markdown, 300–500 words, "## " headings, "- " bullets, **bold** for key numbers. Suggested flow: the verdict (worth, gain, how he did against his all-world benchmark — the benchmark field, if present — split vs 75/25, the rule checks) · core · satellite, biggest issues first · where new money should go · what to watch. Say which positions are dips worth buying (his style) and which have a broken case; don't treat every dip as a chance.
 - core.assessment: is the core really "broad and boring" and global like his benchmark? Costs (TER), concentration, what's missing.
 - core.overlap: every satellite stock that also sits in a core fund's top holdings, with its weight in that fund (from the fund research). Empty if none.
 - core.currency_note: how much of the portfolio depends on the US dollar or one market, in one or two sentences.
