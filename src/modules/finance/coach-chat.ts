@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import { getAiUsageMonth, recordUsage } from "@/lib/ai-usage";
+import { getAiUsageMonth, recordUsage, type AiFeature } from "@/lib/ai-usage";
 import { eur } from "@/lib/format";
 import { db, hasDatabase } from "@/lib/supabase";
 import { COACH_MODEL } from "./coach";
@@ -21,10 +21,26 @@ export type ChatEvent =
   | { type: "text"; text: string }
   | { type: "tool"; label: string }
   | { type: "card"; card: Card }
+  | { type: "final"; text: string }
   | { type: "done" }
   | { type: "error"; message: string };
 
 const MAX_STEPS = 8;
+
+/** What makes one chat agent different from another (coach, analyst). */
+export interface ChatAgent {
+  agent: "coach" | "analyst";
+  /** Name used in messages ("The coach declined..."). */
+  who: string;
+  feature: AiFeature;
+  system: string;
+  tools: Anthropic.Beta.BetaToolUnion[];
+  labels: Record<string, string>;
+  runTool: (name: string, input: unknown, chatId: string) => Promise<{ content: string; isError: boolean }>;
+  buildMemory: () => Promise<string>;
+  /** Answers may contain [links](url), but only to pages its own web searches returned. */
+  links: boolean;
+}
 
 const SYSTEM = `You are the spending coach inside LifeOS, Houssem's personal dashboard. This is the chat: he asks about his money, you look it up in his own data and tell him what you think. You're a coach, not a bank statement: have an opinion and push him to act.
 
@@ -71,19 +87,22 @@ export interface ChatMessageView {
   cards?: Card[];
 }
 
-export async function listChats(): Promise<ChatSummary[]> {
-  if (!hasDatabase()) return SAMPLE_CHATS;
+export async function listChats(agent: ChatAgent["agent"] = "coach", sample: ChatSummary[] = SAMPLE_CHATS): Promise<ChatSummary[]> {
+  if (!hasDatabase()) return sample;
   const { data } = await db()
     .from("coach_chats")
     .select("id,title,updated_at")
-    .eq("agent", "coach")
+    .eq("agent", agent)
     .order("updated_at", { ascending: false })
     .limit(30);
   return (data ?? []).map((c) => ({ id: c.id, title: c.title, updatedAt: c.updated_at }));
 }
 
-export async function getChatMessages(chatId: string): Promise<ChatMessageView[]> {
-  if (!hasDatabase()) return chatId === SAMPLE_CHATS[0].id ? SAMPLE_MESSAGES : [];
+export async function getChatMessages(
+  chatId: string,
+  sample: Record<string, ChatMessageView[]> = { [SAMPLE_CHATS[0].id]: SAMPLE_MESSAGES },
+): Promise<ChatMessageView[]> {
+  if (!hasDatabase()) return sample[chatId] ?? [];
   const { data } = await db()
     .from("coach_messages")
     .select("id,role,text,cards")
@@ -159,6 +178,18 @@ async function buildMemory(): Promise<string> {
   return lines.join("\n");
 }
 
+export const COACH_CHAT: ChatAgent = {
+  agent: "coach",
+  who: "coach",
+  feature: "coach_chat",
+  system: SYSTEM,
+  tools: TOOLS,
+  labels: TOOL_LABEL,
+  runTool,
+  buildMemory,
+  links: false,
+};
+
 /* ---------- Cards ---------- */
 
 /** Every number (in cents, unsigned) that appears in a lookup result of this chat. */
@@ -201,6 +232,29 @@ function checkCard(input: unknown, known: Set<number>): { card: Card } | { error
   return { card: { ...card, rows: card.rows.map((r) => ({ ...r, value: Math.abs(r.value) })) } };
 }
 
+/* ---------- Links ---------- */
+
+const URL_RE = /https?:\/\/[^\s"'<>\\)\]]+/g;
+const norm = (u: string) => u.replace(/[.,;]+$/, "").replace(/\/$/, "").toLowerCase();
+
+/**
+ * Markdown links stay only when the URL came out of a web search in this chat
+ * (search results or citations), never from the model's own memory. Others
+ * become plain text.
+ */
+function keepFoundLinks(text: string, messages: Param[]): string {
+  const found = new Set<string>();
+  for (const m of messages) {
+    if (m.role !== "assistant" || typeof m.content === "string") continue;
+    for (const b of m.content) {
+      if (b.type === "tool_use") continue;
+      const raw = b.type === "text" ? JSON.stringify((b as { citations?: unknown }).citations ?? []) : JSON.stringify(b);
+      for (const u of raw.match(URL_RE) ?? []) found.add(norm(u));
+    }
+  }
+  return text.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (all, label: string, url: string) => (found.has(norm(url)) ? all : label));
+}
+
 /* ---------- One turn ---------- */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -211,7 +265,7 @@ const titleFrom = (q: string) => {
 
 /** Checks before a turn: returns an error message, or null when the chat may run. */
 export async function chatBlocked(): Promise<string | null> {
-  if (!hasDatabase()) return "Sample mode: connect Supabase to chat with the coach.";
+  if (!hasDatabase()) return "Sample mode: connect Supabase to chat.";
   if (!process.env.ANTHROPIC_API_KEY) return "Add the Anthropic API key first (see the check-in page).";
   const usage = await getAiUsageMonth();
   if (usage?.capUsd && usage.costUsd >= usage.capUsd) {
@@ -224,18 +278,18 @@ export async function chatBlocked(): Promise<string | null> {
  * Answer one question. Emits events as it goes (text as it streams, a label
  * per lookup) and saves both sides of the turn. Never throws.
  */
-export async function runChatTurn(chatIdIn: string | null, question: string, emit: (e: ChatEvent) => void): Promise<void> {
+export async function runChatTurn(cfg: ChatAgent, chatIdIn: string | null, question: string, emit: (e: ChatEvent) => void): Promise<void> {
   let chatId = chatIdIn && UUID.test(chatIdIn) ? chatIdIn : null;
   let memory = "";
   try {
     if (chatId) {
-      const { data } = await db().from("coach_chats").select("memory").eq("id", chatId).eq("agent", "coach").maybeSingle();
+      const { data } = await db().from("coach_chats").select("memory").eq("id", chatId).eq("agent", cfg.agent).maybeSingle();
       if (!data) chatId = null;
       else memory = data.memory;
     }
     if (!chatId) {
-      memory = await buildMemory();
-      const { data, error } = await db().from("coach_chats").insert({ title: titleFrom(question), memory }).select("id").single();
+      memory = await cfg.buildMemory();
+      const { data, error } = await db().from("coach_chats").insert({ agent: cfg.agent, title: titleFrom(question), memory }).select("id").single();
       if (error) throw error;
       chatId = data.id as string;
     }
@@ -263,31 +317,36 @@ export async function runChatTurn(chatIdIn: string | null, question: string, emi
         thinking: { type: "adaptive" },
         output_config: { effort: "medium" },
         cache_control: { type: "ephemeral" },
-        system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
-        tools: TOOLS,
+        system: [{ type: "text", text: cfg.system, cache_control: { type: "ephemeral" } }],
+        tools: cfg.tools,
         messages: [...first, ...history, ...turn],
       });
       stream.on("text", (t) => emit({ type: "text", text: t }));
+      stream.on("streamEvent", (ev) => {
+        if (ev.type === "content_block_start" && ev.content_block.type === "server_tool_use") emit({ type: "tool", label: "Searching the web" });
+      });
       const message = await stream.finalMessage();
-      await recordUsage("coach_chat", message.model, message.usage, chatId);
+      await recordUsage(cfg.feature, message.model, message.usage, chatId);
 
-      if (message.stop_reason === "refusal") throw new Error("The coach declined to answer that.");
+      if (message.stop_reason === "refusal") throw new Error(`The ${cfg.who} declined to answer that.`);
       if (message.stop_reason === "max_tokens") throw new Error("The answer got cut off. Try a narrower question.");
       turn.push({ role: "assistant", content: message.content as Anthropic.Beta.BetaContentBlockParam[] });
       const text = message.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("");
       if (text.trim()) answer = answer ? `${answer}\n\n${text}` : text;
 
+      // The server paused its own web-search loop: send the turn back and it resumes.
+      if (message.stop_reason === "pause_turn") continue;
       const calls = message.content.filter((b): b is Anthropic.Beta.BetaToolUseBlock => b.type === "tool_use");
       if (message.stop_reason !== "tool_use" || !calls.length) break;
       if (step === MAX_STEPS - 1) throw new Error("That took too many lookups. Try a narrower question.");
 
       const lookups = calls.filter((c) => c.name !== "show_card");
-      for (const label of new Set(lookups.map((c) => TOOL_LABEL[c.name] ?? "Looking things up"))) emit({ type: "tool", label });
+      for (const label of new Set(lookups.map((c) => cfg.labels[c.name] ?? "Looking things up"))) emit({ type: "tool", label });
       if (text.trim()) emit({ type: "text", text: "\n\n" });
       const known = lookupNumbers([...history, ...turn]);
       const results = await Promise.all(
         calls.map(async (c) => {
-          if (c.name !== "show_card") return runTool(c.name, c.input, chatId!);
+          if (c.name !== "show_card") return cfg.runTool(c.name, c.input, chatId!);
           if (cards.length >= 2) return { content: "Card refused: at most 2 cards per answer.", isError: true };
           const res = checkCard(c.input, known);
           if ("error" in res) return { content: res.error, isError: true };
@@ -307,14 +366,20 @@ export async function runChatTurn(chatIdIn: string | null, question: string, emi
       });
     }
 
-    if (!answer.trim()) throw new Error("The coach came back without an answer. Try again.");
+    if (!answer.trim()) throw new Error(`The ${cfg.who} came back without an answer. Try again.`);
+    // Links survive only to pages this chat's own web searches returned (none for an agent without web search).
+    const checked = keepFoundLinks(answer, cfg.links ? [...history, ...turn] : []);
+    if (checked !== answer) {
+      answer = checked;
+      emit({ type: "final", text: answer });
+    }
     await db()
       .from("coach_messages")
       .insert({ chat_id: chatId, role: "assistant", text: answer, api: turn.slice(1), cards });
     await db().from("coach_chats").update({ updated_at: new Date().toISOString() }).eq("id", chatId);
     emit({ type: "done" });
   } catch (err) {
-    console.error("coach chat:", err);
+    console.error(`${cfg.agent} chat:`, err);
     // The question stays saved; the next question simply follows it.
     emit({
       type: "error",

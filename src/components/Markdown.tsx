@@ -7,12 +7,27 @@ import { Fragment, type ReactNode } from "react";
  */
 function inline(text: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+  // **bold**, *italic*, and [label](https://…) links (web addresses only; opened in a new tab).
+  const re = /\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     if (m.index > last) out.push(text.slice(last, m.index));
-    out.push(m[1] !== undefined ? <strong key={m.index} className="font-semibold text-text">{m[1]}</strong> : <em key={m.index}>{m[2]}</em>);
+    if (m[1] !== undefined) out.push(<strong key={m.index} className="font-semibold text-text">{m[1]}</strong>);
+    else if (m[2] !== undefined) out.push(<em key={m.index}>{m[2]}</em>);
+    else
+      out.push(
+        <a
+          key={m.index}
+          href={m[4]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted underline decoration-faint underline-offset-4 hover:text-text focus-visible:outline-2 focus-visible:outline-dawn"
+        >
+          {m[3]}
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>,
+      );
     last = m.index + m[0].length;
   }
   if (last < text.length) out.push(text.slice(last));

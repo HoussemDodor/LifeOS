@@ -184,7 +184,13 @@ export default async function AnalystPage({ searchParams }: { searchParams: Prom
             ))}
           </section>
 
-          <p className="mt-14 max-w-[70ch] text-xs text-faint">
+          <p className="mt-14 text-sm text-muted">
+            Questions about this report?{" "}
+            <Link href="/finance/analyst/chat" className="text-dawn underline-offset-4 hover:underline">
+              Ask the analyst
+            </Link>
+          </p>
+          <p className="mt-2 max-w-[70ch] text-xs text-faint">
             Analysis against your own rules, not licensed financial advice. LifeOS never places trades; every buy or sell is
             yours to decide in DEGIRO. Numbers about your portfolio come from LifeOS; market facts come from the linked
             sources, dated as shown.

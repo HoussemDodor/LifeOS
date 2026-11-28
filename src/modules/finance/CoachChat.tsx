@@ -6,26 +6,51 @@ import { Markdown } from "@/components/Markdown";
 import { CoachCard } from "./CoachCard";
 import type { ChatEvent, ChatMessageView } from "./coach-chat";
 
-const SUGGESTIONS = [
-  "Where did my money go last month?",
-  "How much do I spend on food delivery?",
-  "Which subscriptions am I paying for?",
-  "Am I on track for my savings target?",
-];
+const AGENTS = {
+  coach: {
+    name: "Coach",
+    base: "/finance/coach",
+    intro: "Ask anything about your spending. A few to start with:",
+    placeholder: "Ask about your spending",
+    footer: "Answers come from your own data; a question costs a few cents.",
+    suggestions: [
+      "Where did my money go last month?",
+      "How much do I spend on food delivery?",
+      "Which subscriptions am I paying for?",
+      "Am I on track for my savings target?",
+    ],
+  },
+  analyst: {
+    name: "Analyst",
+    base: "/finance/analyst/chat",
+    intro: "Ask anything about your investments. A few to start with:",
+    placeholder: "Ask about your portfolio",
+    footer: "Answers come from your portfolio and your reports; news questions search the web. A question costs a few cents, with a web search up to about 30.",
+    suggestions: [
+      "How much of my money is really in Meta?",
+      "Which position worries you most right now?",
+      "Where should my next € 500 go under my rules?",
+      "What changed since my last report?",
+    ],
+  },
+} as const;
 
 interface Msg extends ChatMessageView {
   pending?: boolean;
 }
 
 export function CoachChat({
+  agent = "coach",
   chatId: initialId,
   initial,
   disabledReason,
 }: {
+  agent?: keyof typeof AGENTS;
   chatId: string | null;
   initial: ChatMessageView[];
   disabledReason: string | null;
 }) {
+  const a = AGENTS[agent];
   const router = useRouter();
   const [messages, setMessages] = useState<Msg[]>(initial);
   const [chatId, setChatId] = useState(initialId);
@@ -60,11 +85,11 @@ export function CoachChat({
       const res = await fetch("/api/coach/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId, message: q }),
+        body: JSON.stringify({ agent, chatId, message: q }),
       });
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null);
-        throw new Error(body?.error ?? "Couldn’t reach the coach. Try again.");
+        throw new Error(body?.error ?? `Couldn’t reach the ${a.name.toLowerCase()}. Try again.`);
       }
       const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
       let buf = "";
@@ -79,10 +104,13 @@ export function CoachChat({
           const e = JSON.parse(line) as ChatEvent;
           if (e.type === "chat" && e.id !== chatId) {
             setChatId(e.id);
-            window.history.replaceState(null, "", `/finance/coach?chat=${e.id}`);
+            window.history.replaceState(null, "", `${a.base}?chat=${e.id}`);
           } else if (e.type === "text") {
             setStatus(null);
             patchLast((m) => ({ ...m, text: m.text + e.text }));
+          } else if (e.type === "final") {
+            // The checked version of the answer (links to unverified pages removed).
+            patchLast((m) => ({ ...m, text: e.text }));
           } else if (e.type === "card") {
             patchLast((m) => ({ ...m, cards: [...(m.cards ?? []), e.card] }));
           } else if (e.type === "tool") {
@@ -116,9 +144,9 @@ export function CoachChat({
     <section aria-label="Chat" className="min-w-0">
       {messages.length === 0 ? (
         <div>
-          <p className="text-muted">Ask anything about your spending. A few to start with:</p>
+          <p className="text-muted">{a.intro}</p>
           <ul className="mt-4 flex flex-wrap gap-2">
-            {SUGGESTIONS.map((s) => (
+            {a.suggestions.map((s) => (
               <li key={s}>
                 <button
                   type="button"
@@ -144,7 +172,7 @@ export function CoachChat({
               </li>
             ) : (
               <li key={m.id} className="max-w-[68ch]">
-                <p className="mb-1.5 text-xs text-faint">Coach</p>
+                <p className="mb-1.5 text-xs text-faint">{a.name}</p>
                 {m.text ? (
                   <Markdown text={m.text} className="text-[15px] leading-relaxed text-text/90" />
                 ) : null}
@@ -199,7 +227,7 @@ export function CoachChat({
                 void ask(input);
               }
             }}
-            placeholder={disabledReason ?? (messages.length ? "Ask a follow-up" : "Ask about your spending")}
+            placeholder={disabledReason ?? (messages.length ? "Ask a follow-up" : a.placeholder)}
             className="min-h-[2.75rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-[15px] outline-none placeholder:text-faint disabled:cursor-not-allowed"
           />
           <button
@@ -211,7 +239,7 @@ export function CoachChat({
           </button>
         </div>
         <p className="mt-2 text-xs text-faint">
-          Enter to send, Shift+Enter for a new line. Answers come from your own data; a question costs a few cents.
+          Enter to send, Shift+Enter for a new line. {a.footer}
         </p>
       </form>
     </section>

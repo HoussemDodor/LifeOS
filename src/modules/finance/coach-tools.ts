@@ -249,13 +249,13 @@ async function checkinReports() {
   };
 }
 
-async function searchPastChats(raw: unknown, currentChatId: string) {
+export async function searchPastChats(raw: unknown, currentChatId: string, agent: "coach" | "analyst" = "coach") {
   const { query } = SearchChatsInput.parse(raw);
   const pattern = `%${query.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
   const { data } = await db()
     .from("coach_messages")
     .select("chat_id,role,text,created_at,coach_chats!inner(title,agent)")
-    .eq("coach_chats.agent", "coach")
+    .eq("coach_chats.agent", agent)
     .neq("chat_id", currentChatId)
     .ilike("text", pattern)
     .order("created_at", { ascending: false })
@@ -264,7 +264,7 @@ async function searchPastChats(raw: unknown, currentChatId: string) {
     results: (data ?? []).map((m) => ({
       chat: (m.coach_chats as unknown as { title: string }).title,
       when: m.created_at.slice(0, 10),
-      who: m.role === "user" ? "Houssem" : "you (coach)",
+      who: m.role === "user" ? "Houssem" : "you",
       text: m.text.slice(0, 700),
     })),
   };
