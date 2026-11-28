@@ -45,10 +45,10 @@ function Ranking({ card }: { card: Card }) {
   const max = Math.max(...card.rows.map((r) => r.value), 0) || 1;
   return (
     <ul className="space-y-1">
-      {card.rows.map((r) => {
-        const hi = r.label === card.highlight;
+      {card.rows.map((r, i) => {
+        const hi = r.label.trim() === card.highlight?.trim();
         return (
-          <li key={r.label} className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)_auto] items-center gap-3 py-1 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto]">
+          <li key={i} className="grid grid-cols-[minmax(0,8rem)_minmax(0,1fr)_auto] items-center gap-3 py-1 sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)_auto]">
             <span className={`truncate text-sm ${hi ? "text-text" : "text-muted"}`} title={r.label}>
               {r.label}
             </span>
@@ -72,7 +72,7 @@ function Months({ card }: { card: Card }) {
   const top = niceMax(Math.max(...rows.map((r) => r.value)));
   const maxIdx = rows.reduce((b, r, i) => (r.value > rows[b].value ? i : b), 0);
   // Label sparingly: the highlight and the peak, plus the latest month when it has room.
-  const labelled = new Set([maxIdx, rows.findIndex((r) => r.label === card.highlight)].filter((i) => i >= 0));
+  const labelled = new Set([maxIdx, rows.findIndex((r) => r.label.trim() === card.highlight?.trim())].filter((i) => i >= 0));
   const last = rows.length - 1;
   if (![...labelled].some((i) => Math.abs(i - last) <= 1)) labelled.add(last);
   const H = 128; // plot height in px
@@ -91,11 +91,11 @@ function Months({ card }: { card: Card }) {
 
         <ol className="relative ml-11 flex items-end gap-[2px]" style={{ height: H + 18, paddingTop: 18 }} aria-hidden="true">
           {rows.map((r, i) => {
-            const hi = r.label === card.highlight;
+            const hi = r.label.trim() === card.highlight?.trim();
             const h = Math.max(2, (r.value / top) * H);
             return (
               <li
-                key={r.label}
+                key={i}
                 className="relative flex h-full flex-1 items-end justify-center"
                 onMouseEnter={() => setHover(i)}
               >
@@ -129,7 +129,7 @@ function Months({ card }: { card: Card }) {
 
       <ol className="ml-11 mt-1.5 flex gap-[2px]" aria-hidden="true">
         {rows.map((r, i) => (
-          <li key={r.label} className="flex-1 text-center text-[11px] text-faint">
+          <li key={i} className="flex-1 text-center text-[11px] text-faint">
             {rows.length <= 12 || i % 2 === rows.length % 2 ? monthShort(r.label).slice(0, 3) : ""}
           </li>
         ))}
@@ -140,7 +140,7 @@ function Months({ card }: { card: Card }) {
         <caption>{card.title}</caption>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.label}>
+            <tr key={`${r.label}-${r.value}`}>
               <th scope="row">{monthLong(r.label)}</th>
               <td>{money(r.value)}</td>
             </tr>
@@ -155,10 +155,10 @@ function List({ card }: { card: Card }) {
   return (
     <div>
       <ul className="divide-y divide-line">
-        {card.rows.map((r) => {
-          const hi = r.label === card.highlight;
+        {card.rows.map((r, i) => {
+          const hi = r.label.trim() === card.highlight?.trim();
           return (
-            <li key={r.label} className="flex items-baseline justify-between gap-4 py-2">
+            <li key={i} className="flex items-baseline justify-between gap-4 py-2">
               <span className="min-w-0">
                 <span className="flex items-center gap-2 text-[15px]">
                   {hi && <span className="size-2 shrink-0 rounded-full bg-dawn" aria-hidden="true" />}

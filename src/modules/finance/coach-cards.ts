@@ -18,7 +18,7 @@ export const CardSchema = z.object({
     )
     .min(1)
     .max(24),
-  highlight: z.string().max(60).optional(),
+  highlight: z.string().trim().max(60).optional(),
   total: z.object({ label: z.string().trim().min(1).max(40), value: z.number().finite() }).optional(),
 });
 export type Card = z.infer<typeof CardSchema>;
