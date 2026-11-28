@@ -7,8 +7,14 @@ plain-language report of what changed and where to see it.
 
 ## The change loop (always all steps)
 
-1. **Understand.** Restate the change in one line. If it's ambiguous or touches
-   money, auth or data deletion, ask first. Otherwise just do it.
+1. **Understand.** Restate the change in one line. **Always ask for
+   clarification** when anything is unclear, open to more than one reading, or
+   depends on something only Houssem knows (his accounts, amounts, preferences,
+   priorities): ask before acting, never fill the gap with an assumption. Put
+   the questions in one message, each with a recommendation. A question that
+   comes up mid-task: stop and ask, don't silently pick a default. Always ask
+   first for anything touching money, auth or data deletion. Only when the
+   request is fully clear: say in one line what you understood and go.
 2. **Edit** the code in this repo (`C:\dev\LifeOS\app`).
 3. **Build**: `npm run build` must pass (type check + lint included).
 4. **Preview** UI changes: start the `lifeos-dev` launch config
