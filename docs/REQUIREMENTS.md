@@ -5,7 +5,7 @@ production at houssem.dodor.nl, not just locally.
 Status key: ✅ done · 🟡 built, not live/verified · ⬜ not started.
 Items marked *(suggested)* were added by Claude as improvements on the original ask.
 
-Last updated: 2026-11-27
+Last updated: 2026-11-28
 
 ## 1. Platform
 
@@ -21,7 +21,7 @@ Last updated: 2026-11-27
 | P5 | English interface and briefings | ✅ |
 | P6 | Works on phone as well as desktop | ✅ |
 | P7 | *(suggested)* Installable as a home-screen app on iPhone (PWA manifest + icon) | ⬜ |
-| P11 | AI usage and costs tracker in the bottom-left of the sidebar: token use and spend of the LifeOS AI agents (spending coach, portfolio analyst, chats), e.g. this month vs the API spend cap | 🟡 live: every Claude call logged in `ai_usage`; sidebar shows this month in US$ vs `AI_SPEND_CAP_USD` ($10); fills once the coach runs |
+| P11 | AI usage and costs tracker in the bottom-left of the sidebar: token use and spend of the LifeOS AI agents (spending coach, portfolio analyst, chats), e.g. this month vs the API spend cap | ✅ every Claude call logged in `ai_usage`; sidebar shows this month in US$ vs `AI_SPEND_CAP_USD` ($10), per feature on hover |
 
 ## 2. Inbox, agenda and to-dos
 
@@ -38,13 +38,13 @@ Last updated: 2026-11-27
 
 | # | Requirement | Status |
 |---|---|---|
-| F1 | ING current and savings accounts and transactions | 🟡 live via CSV upload on Finance (accounts, balances, categories, no duplicates); confirm with your first real export. Live sync via Enable Banking possible later |
-| F2 | DEGIRO portfolio | 🟡 live: Portfolio + Transactions CSV in the same upload as ING; confirm with your first real export |
+| F1 | ING current and savings accounts and transactions | ✅ live via CSV upload on Finance (accounts, balances, categories, no duplicates), used for the October check-in. Live sync via Enable Banking possible later |
+| F2 | DEGIRO portfolio | ✅ live: Portfolio + Transactions CSV in the same upload as ING; real export loaded 2026-11-27 |
 | F3 | Bitvavo crypto | 🟡 built: read-only sync, refreshes when Finance opens; needs your View-only API key (push-secrets) |
 | F4 | Net worth over time, spending by category, savings | ⬜ |
-| F5 | Subscriptions and recurring costs detected from transactions | ⬜ |
+| F5 | Subscriptions and recurring costs detected from transactions | 🟡 partly: the coach finds recurring costs (`recurring_costs`), price changes and stopped paybacks; the Subscriptions module itself isn't built |
 | F6 | **Monthly portfolio review**, see below and [finance-agents.md](finance-agents.md) | ✅ the portfolio analyst (F9): Analyst tab, monthly with the check-in |
-| F7 | Monthly check-in: upload, see data freshness, press one button that runs both agents; reports saved per month | 🟡 live at /finance/checkin for the coach; needs your Anthropic API key; analyst joins in step 4 |
+| F7 | Monthly check-in: upload, see data freshness, press one button that runs both agents; reports saved per month | ✅ live at /finance/checkin: one button runs the spending coach and the portfolio analyst; reports saved per month |
 | F8 | **Spending coach** agent: blunt Gen Z briefing, proposes a savings target, Tikkie netting, category fixes, tracks 1–3 promises per month, chat with memory ([spec](finance-agents.md)) | ✅ report live (target proposal, promises + scoring, category fixes with undo); chat live at /finance/coach (read-only tools over your data, saved chats, memory of check-ins and earlier chats, stops at the monthly AI cap) |
 | F9 | **Portfolio analyst** agent: core–satellite 75/25, crypto max 5%, trim advice only above 50% satellite, web-sourced stock checks, chat with memory ([spec](finance-agents.md)) | ✅ 4a + 4b live: Portfolio tab (split vs 75/25, crypto cap, trim line, put in vs worth, fees) and Analyst tab (monthly review: web research per stock with dated sources, fund facts and overlap, core make-up to approve; runs with the check-in or on its own); 4c live: Portfolio compares your result with the same euros on the same days in Vanguard FTSE All-World (prices from Yahoo Finance's public data; left out if unavailable), and the analyst gets it too; step 5 live: Analyst → Ask the analyst, a read-only chat with memory over your portfolio and reports, web search with checked source links |
 
